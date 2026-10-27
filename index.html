@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Bản Test Game 3D — Du Hành Tu Luyện (Đợt 20A2)</title>
+<style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; background: #e8f3fb; color: #1e293b; }
+    .wrap { max-width: 860px; margin: 0 auto; padding: 10px; }
+    .banner { background: #fef3c7; border: 2px dashed #d97706; color: #92400e; border-radius: 12px; padding: 10px 12px; font-weight: 800; font-size: 14px; text-align: center; }
+    .panel { background: #ffffff; border: 1px solid #bae6fd; border-radius: 16px; padding: 14px; margin-top: 10px; box-shadow: 0 2px 10px rgba(2,132,199,.08); }
+    h1 { font-size: 19px; margin: 2px 0 8px; text-align: center; color: #b45309; letter-spacing: .4px; }
+    .guide { font-size: 13px; line-height: 1.55; background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 12px; padding: 10px 12px; }
+    .guide b { color: #b45309; }
+    .hud { background: #0f172a; color: #fde68a; border-radius: 12px; padding: 12px; }
+    .hud-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; font-size: 14px; font-weight: 700; }
+    .tl-wrap { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 230px; }
+    .tl-bar-bg { flex: 1; background: #020617; border: 1px solid #92400e; border-radius: 999px; height: 16px; overflow: hidden; }
+    #g3-tl-bar { height: 100%; background: linear-gradient(90deg, #10b981, #a3e635); transition: width .5s; width: 100%; }
+    #g3-status { font-size: 13.5px; color: #fde68a; margin: 8px 0 0; line-height: 1.5; }
+    .hud-sub { font-size: 13px; color: #e2e8f0; margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px 16px; font-weight: 700; }
+    .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    button { font-family: inherit; font-weight: 800; font-size: 14px; border: 0; border-radius: 12px; padding: 10px 14px; cursor: pointer; color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.18); transition: opacity .2s, background .2s; }
+    button:disabled { cursor: not-allowed; }
+    .btn-green { background: #059669; } .btn-green:hover { background: #10b981; }
+    .btn-red { background: #b91c1c; } .btn-red:hover { background: #dc2626; }
+    .btn-sky { background: #0369a1; } .btn-sky:hover { background: #0284c7; }
+    .btn-amber { background: #d97706; } .btn-amber:hover { background: #f59e0b; }
+    .btn-violet { background: #6d28d9; } .btn-violet:hover { background: #7c3aed; }
+    .btn-slate { background: #475569; } .btn-slate:hover { background: #64748b; }
+    #g3-viewport { position: relative; width: 100%; height: 62vh; min-height: 340px; border-radius: 14px; overflow: hidden; border: 2px solid #7dd3fc; background: #9fc7e8; margin-top: 10px; }
+    #g3-vp-hint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: 700; color: #334155; font-size: 14px; padding: 0 24px; }
+    #g3-toast { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: #f59e0b; color: #111827; font-size: 13.5px; font-weight: 900; padding: 7px 16px; border-radius: 999px; box-shadow: 0 4px 14px rgba(0,0,0,.25); opacity: 0; transition: opacity .5s; pointer-events: none; white-space: nowrap; max-width: 94%; overflow: hidden; text-overflow: ellipsis; }
+    .zone-now { margin-top: 10px; font-size: 14px; font-weight: 800; background: #ecfdf5; border: 1px solid #6ee7b7; color: #065f46; border-radius: 12px; padding: 9px 12px; }
+    details.legend { margin-top: 10px; background: #ffffff; border: 1px solid #bae6fd; border-radius: 14px; padding: 10px 14px; }
+    details.legend summary { font-weight: 900; cursor: pointer; color: #0369a1; font-size: 14.5px; }
+    .legend table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
+    .legend td { padding: 4px 6px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+    .legend td.d { text-align: right; font-weight: 800; color: #b45309; white-space: nowrap; }
+    .small { font-size: 11.5px; color: #64748b; line-height: 1.5; }
+    .link-danger { background: none; box-shadow: none; color: #b91c1c; font-size: 12.5px; padding: 4px 6px; text-decoration: underline; }
+    #g3-home-hint { font-size: 12.5px; color: #fca5a5; margin-top: 6px; font-weight: 700; }
+    .sect-title { font-size: 15px; font-weight: 900; color: #b45309; margin: 14px 0 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="banner">🧪 BẢN TEST GAME 3D — dữ liệu mô phỏng trên máy, không phải tài khoản thật</div>
+
+    <div class="panel">
+        <h1>🎮 DU HÀNH TU LUYỆN — BẢN ĐỒ 3D (TEST)</h1>
+        <div class="guide">
+            <b>Cách test:</b><br>
+            1️⃣ Bấm <b>📍 Bật GPS</b>, cho phép truy cập vị trí, rồi <b>đi bộ thật</b> — nhân vật chạy theo trên bản đồ 3D quanh vị trí của mình. Cứ <b>10m = +1 EXP</b> (mô phỏng), 50m tốn 1 Thể Lực. Đi xe quá 15 km/h thì không tính.<br>
+            2️⃣ Đang đứng ở nhà thì bấm <b>🏠 Đặt Động Phủ tại đây</b> — sau đó đi xa rồi quay về: chỉ khi <b>trong vòng 100m quanh Động Phủ</b> mới bấm được “Đăng truyện” và “Cho sủng thú ăn” (đúng luật bản thật). Đọc/nghe truyện thì ở đâu cũng mở được.<br>
+            3️⃣ Đi ngang các điểm trên bản đồ: 🛒 siêu thị = Chợ Tông Môn, 🏪 combini = Luyện Khí/Luyện Đan, 🏫 trường / 📚 hiệu sách = Chế Phù, 🌳 công viên = Dược Viên, 🎣 mặt nước = Đầm Câu, 🌀 sở thú/bảo tàng = Bí Cảnh.<br>
+            4️⃣ Chưa tiện đi thì bấm <b>👀 Xem thử</b>: nhân vật tự đi dạo quanh Ga Tokyo, số liệu vẫn mô phỏng để xem Thể Lực/EXP chạy ra sao.<br>
+            <span class="small">Lưu ý bản test: Thể Lực hồi nhanh +1 mỗi 30 giây cho dễ kiểm tra (bản thật: +1 mỗi 5 phút + ngồi tu luyện nghe truyện). App phải đang mở khi đi — đóng trang/khóa máy lâu thì GPS ngừng (giới hạn trình duyệt). Vị trí chỉ xử lý ngay trên máy, trang test không gửi vị trí đi đâu cả.</span>
+        </div>
+
+        <div class="hud">
+            <div class="hud-row">
+                <div class="tl-wrap">
+                    <span style="white-space:nowrap">⚡ Thể Lực</span>
+                    <div class="tl-bar-bg"><div id="g3-tl-bar"></div></div>
+                    <span id="g3-tl-text" style="white-space:nowrap">… / …</span>
+                </div>
+                <span id="g3-today" style="white-space:nowrap">Hôm nay: … m • +… EXP</span>
+                <span id="g3-exp" style="white-space:nowrap">⭐ …</span>
+            </div>
+            <div class="hud-sub">
+                <span id="g3-home">🏠 Động Phủ: chưa đặt</span>
+                <span id="g3-zone">📍 Khu hiện tại: —</span>
+            </div>
+            <p id="g3-status">⏳ Bấm “Bật GPS” để bắt đầu, hoặc “Xem thử” để ngắm bản đồ 3D trước.</p>
+            <div id="g3-home-hint">Hãy bấm “Đặt Động Phủ tại đây” khi đang đứng ở nhà.</div>
+            <div class="btns">
+                <button id="g3-btn-start" class="btn-green">📍 Bật GPS</button>
+                <button id="g3-btn-stop" class="btn-red" disabled style="opacity:.45">⏸ Dừng</button>
+                <button id="g3-btn-demo" class="btn-sky">👀 Xem thử (Ga Tokyo)</button>
+                <button id="g3-btn-home" class="btn-amber">🏠 Đặt Động Phủ tại đây</button>
+                <button id="g3-btn-clear-home" class="link-danger">Xóa Động Phủ</button>
+            </div>
+            <div class="sect-title" style="color:#fbbf24">🎬 Hành động thử (demo)</div>
+            <div class="btns" style="margin-top:4px">
+                <button id="g3-btn-post" class="btn-violet" disabled style="opacity:.45">📚 Đăng truyện lên Tàng Kinh Các (demo)</button>
+                <button id="g3-btn-pet" class="btn-violet" disabled style="opacity:.45">🐾 Cho sủng thú ăn (demo)</button>
+                <button id="g3-btn-read" class="btn-slate">📖 Mở Tàng Kinh Các — đọc/nghe truyện (demo)</button>
+            </div>
+        </div>
+
+        <div id="g3-viewport">
+            <p id="g3-vp-hint">🗺️ Bản đồ 3D sẽ hiện ở đây<br>sau khi bật GPS hoặc Xem thử.</p>
+            <div id="g3-toast">+0 EXP ⭐</div>
+        </div>
+
+        <details class="legend" open>
+            <summary>🗺️ Chú giải khu vực &amp; khoảng cách gần nhất (cập nhật trực tiếp)</summary>
+            <table>
+                <tr><td>🛒 Siêu thị</td><td><b>Chợ Tông Môn</b> — mua bán, đấu giá, trao đổi</td><td class="d" id="g3-d-supermarket">—</td></tr>
+                <tr><td>🏪 Combini</td><td><b>Luyện Khí • Luyện Đan</b></td><td class="d" id="g3-d-convenience">—</td></tr>
+                <tr><td>🏫 Trường học</td><td><b>Chế Phù Các</b></td><td class="d" id="g3-d-school">—</td></tr>
+                <tr><td>📚 Hiệu sách</td><td><b>Chế Phù Các</b></td><td class="d" id="g3-d-books">—</td></tr>
+                <tr><td>🌳 Công viên</td><td><b>Dược Viên</b> — vườn linh dược</td><td class="d" id="g3-d-park">—</td></tr>
+                <tr><td>🎣 Mặt nước</td><td><b>Đầm Câu</b> — đứng gần bờ &lt; 50m</td><td class="d" id="g3-d-water">—</td></tr>
+                <tr><td>🌀 Sở thú</td><td><b>Bí Cảnh</b> — cổng đánh quái (kỳ sau)</td><td class="d" id="g3-d-zoo">—</td></tr>
+                <tr><td>🌀 Bảo tàng</td><td><b>Bí Cảnh</b> — cổng đánh quái (kỳ sau)</td><td class="d" id="g3-d-museum">—</td></tr>
+            </table>
+            <p class="small">Đứng trong <b>100m</b> quanh một điểm (riêng mặt nước: 50m) là coi như đang ở khu đó. Khoảng cách tính tới điểm gần nhất đã tải được trên bản đồ quanh vị trí hiện tại.</p>
+        </details>
+
+        <p class="small" style="margin-top:10px">Bản đồ: dữ liệu OpenStreetMap tải thẳng về máy (không qua máy chủ nào khác). Trang test này là bản xem trước của Đợt 20 bản 2: Động Phủ + khu vực theo địa điểm thật sẽ vào game chính ở kỳ 20C; nhân vật 3D + chỉ số + Ngũ Hành ở kỳ 20D; Bí Cảnh chiến đấu ở kỳ 20E.</p>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+<script>
+(function () {
+    'use strict';
+    function el(id) { return document.getElementById(id); }
+    function fmt(n) { return Number(n || 0).toLocaleString('vi-VN'); }
+
+    // ================= CHIBI (bản rút gọn từ static/chibi.js — nhân vật mặc định cho bản test) =================
+    var HAIR_COLORS = [
+        { name: "Đen", hex: "#2f2a33" }, { name: "Nâu", hex: "#7a4a21" },
+        { name: "Bạc", hex: "#c9d2dc" }, { name: "Đỏ", hex: "#b03a2e" },
+        { name: "Lam", hex: "#2e5fa3" }, { name: "Tím", hex: "#6c3483" }
+    ];
+    var ROBE_COLORS = [
+        { name: "Áo Lam", hex: "#2563eb" }, { name: "Áo Đỏ", hex: "#dc2626" },
+        { name: "Áo Lục", hex: "#16a34a" }, { name: "Áo Tím", hex: "#7c3aed" },
+        { name: "Áo Vàng", hex: "#d97706" }, { name: "Áo Hồng", hex: "#db2777" },
+        { name: "Áo Trắng", hex: "#e8ecf3" }, { name: "Áo Đen", hex: "#23272f" }
+    ];
+    var SKIN = "#ffd9b3";
+    function chibiDefault() { return { toc: 0, mau_toc: 0, ao: 0, phap_bao: "sach" }; }
+    function shade(hex, f) {
+        var n = parseInt(hex.slice(1), 16);
+        var r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+        r = Math.max(0, Math.min(255, Math.round(r * f)));
+        g = Math.max(0, Math.min(255, Math.round(g * f)));
+        b = Math.max(0, Math.min(255, Math.round(b * f)));
+        return 'rgb(' + r + ',' + g + ',' + b + ')';
+    }
+    function hairBack(c, hair) {
+        if (c.toc === 1) {
+            return '<path d="M34 34 Q27 88 33 110 L47 110 Q40 70 43 42 Z" fill="' + hair + '"/>' +
+                   '<path d="M86 34 Q93 88 87 110 L73 110 Q80 70 77 42 Z" fill="' + hair + '"/>';
+        }
+        if (c.toc === 5) {
+            return '<circle cx="33" cy="52" r="10" fill="' + hair + '"/><circle cx="87" cy="52" r="10" fill="' + hair + '"/>';
+        }
+        return "";
+    }
+    function hairFront(c, hair) {
+        var fringe = '<path d="M37 47 Q36 21 60 20 Q84 21 83 47 Q72 33 60 33 Q48 33 37 47 Z" fill="' + hair + '"/>';
+        switch (c.toc) {
+            case 0: return '<circle cx="60" cy="15" r="8.5" fill="' + hair + '"/>' + fringe;
+            case 1: return fringe;
+            case 2: return '<path d="M36 49 Q33 19 60 19 Q87 19 84 49 L84 41 Q60 32 36 41 Z" fill="' + hair + '"/>';
+            case 3: return '<circle cx="37" cy="23" r="8.5" fill="' + hair + '"/><circle cx="83" cy="23" r="8.5" fill="' + hair + '"/>' + fringe;
+            case 4: return '<circle cx="60" cy="12" r="9" fill="' + hair + '"/>' +
+                            '<line x1="49" y1="9" x2="75" y2="15" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>' +
+                            '<circle cx="76" cy="15" r="3.2" fill="#dc2626"/>' + fringe;
+            case 5: return '<circle cx="40" cy="29" r="9" fill="' + hair + '"/><circle cx="52" cy="21" r="10" fill="' + hair + '"/>' +
+                            '<circle cx="67" cy="20" r="10" fill="' + hair + '"/><circle cx="79" cy="28" r="9" fill="' + hair + '"/>' +
+                            '<circle cx="60" cy="31" r="12" fill="' + hair + '"/>';
+        }
+        return fringe;
+    }
+    function itemSVG(c) {
+        switch (c.phap_bao) {
+            case "kiem": return '<g transform="rotate(16 88 92)">' +
+                    '<polygon points="84.5,56 90.5,56 89,95 86,95" fill="#d7dde6" stroke="#9aa5b1" stroke-width="0.8"/>' +
+                    '<rect x="81" y="95" width="13" height="3.6" rx="1.6" fill="#f59e0b"/>' +
+                    '<rect x="85.6" y="98.6" width="3.4" height="11" rx="1.6" fill="#7c4a21"/></g>';
+            case "quat": return '<path d="M87 114 L71 85 A21 21 0 0 1 103 85 Z" fill="#fbbf24" stroke="#b45309" stroke-width="1.2"/>' +
+                    '<line x1="87" y1="114" x2="76" y2="88" stroke="#b45309" stroke-width="1"/>' +
+                    '<line x1="87" y1="114" x2="87" y2="84" stroke="#b45309" stroke-width="1"/>' +
+                    '<line x1="87" y1="114" x2="98" y2="88" stroke="#b45309" stroke-width="1"/>' +
+                    '<line x1="87" y1="114" x2="87" y2="120" stroke="#7c4a21" stroke-width="2.4" stroke-linecap="round"/>';
+            case "ho_lo": return '<circle cx="89" cy="107" r="8.5" fill="#d97706"/>' +
+                    '<circle cx="89" cy="94" r="5.8" fill="#f59e0b"/>' +
+                    '<rect x="86.8" y="85.5" width="4.4" height="4.5" rx="1" fill="#7c4a21"/>' +
+                    '<ellipse cx="86" cy="104" rx="2.4" ry="3.4" fill="#fde68a" opacity="0.7"/>';
+            case "sach": return '<g transform="rotate(-8 28 104)">' +
+                    '<rect x="17" y="91" width="21" height="27" rx="2" fill="#2563eb"/>' +
+                    '<rect x="20" y="94" width="15" height="21" rx="1" fill="#fef9ec"/>' +
+                    '<line x1="23" y1="99" x2="32" y2="99" stroke="#94a3b8" stroke-width="1.4"/>' +
+                    '<line x1="23" y1="104" x2="32" y2="104" stroke="#94a3b8" stroke-width="1.4"/>' +
+                    '<line x1="23" y1="109" x2="30" y2="109" stroke="#94a3b8" stroke-width="1.4"/></g>';
+            case "truong": return '<line x1="93" y1="46" x2="93" y2="126" stroke="#7c4a21" stroke-width="3.4" stroke-linecap="round"/>' +
+                    '<circle cx="93" cy="38" r="7.5" fill="#a78bfa" stroke="#7c3aed" stroke-width="1.6"/>' +
+                    '<circle cx="90.5" cy="35.5" r="2.2" fill="#ede9fe"/>';
+            default: return "";
+        }
+    }
+    function chibiSVG(cfg, size) {
+        var c = Object.assign(chibiDefault(), cfg || {});
+        var hair = (HAIR_COLORS[c.mau_toc] || HAIR_COLORS[0]).hex;
+        var robe = (ROBE_COLORS[c.ao] || ROBE_COLORS[0]).hex;
+        var robeDark = shade(robe === "#e8ecf3" ? "#c8cfdb" : robe, 0.72);
+        var s = size || 80;
+        return '<svg width="' + s + '" height="' + Math.round(s * 140 / 120) + '" viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Nhân vật chibi">' +
+            hairBack(c, hair) +
+            '<ellipse cx="47" cy="137" rx="9" ry="3.4" fill="#374151"/>' +
+            '<ellipse cx="73" cy="137" rx="9" ry="3.4" fill="#374151"/>' +
+            '<path d="M44 84 Q33 100 37 117 L46 115 Q43 100 48 88 Z" fill="' + robeDark + '"/>' +
+            '<path d="M76 84 Q87 99 85 114 L76 113 Q74 99 72 88 Z" fill="' + robeDark + '"/>' +
+            '<path d="M38 138 L44 82 Q60 73 76 82 L82 138 Q60 145 38 138 Z" fill="' + robe + '" stroke="rgba(0,0,0,0.18)" stroke-width="1"/>' +
+            '<path d="M51 75 L60 87 L69 75 L69 81 L60 93 L51 81 Z" fill="#fef3c7"/>' +
+            '<rect x="42" y="107" width="36" height="7" rx="3" fill="' + robeDark + '"/>' +
+            '<rect x="56" y="107" width="8" height="7" fill="#f59e0b"/>' +
+            '<circle cx="37" cy="48" r="5" fill="' + SKIN + '"/>' +
+            '<circle cx="83" cy="48" r="5" fill="' + SKIN + '"/>' +
+            '<circle cx="60" cy="46" r="23" fill="' + SKIN + '"/>' +
+            '<ellipse cx="44" cy="55" rx="4" ry="2.2" fill="#ff9d9d" opacity="0.55"/>' +
+            '<ellipse cx="76" cy="55" rx="4" ry="2.2" fill="#ff9d9d" opacity="0.55"/>' +
+            '<ellipse cx="51" cy="48" rx="2.6" ry="3.6" fill="#26221f"/>' +
+            '<ellipse cx="69" cy="48" rx="2.6" ry="3.6" fill="#26221f"/>' +
+            '<circle cx="52" cy="46.4" r="1" fill="#ffffff"/>' +
+            '<circle cx="70" cy="46.4" r="1" fill="#ffffff"/>' +
+            '<path d="M55 56.5 Q60 61 65 56.5" stroke="#b3543f" stroke-width="2" fill="none" stroke-linecap="round"/>' +
+            hairFront(c, hair) +
+            itemSVG(c) +
+        '</svg>';
+    }
+    var chibiCfg = chibiDefault();
+
+    // ================= TRẠNG THÁI / MÔ PHỎNG CỤC BỘ (cùng luật với máy chủ bản 20A) =================
+    var state = { theLuc: 100, theLucMax: 100, met: 0, expToday: 0, metDuExp: 0, metDuTl: 0 };
+    var mode = 'idle'; // idle | gps | demo
+    var curLatLng = null; // {lat, lng} vị trí nhân vật hiện tại
+    var EXP_DAY_CAP = 1000;
+
+    function capHoatDong() { return 1 + Math.floor(state.expToday / 250); }
+
+    function renderHUD() {
+        el('g3-tl-text').textContent = state.theLuc + ' / ' + state.theLucMax;
+        var pct = state.theLucMax ? Math.max(0, Math.min(100, state.theLuc / state.theLucMax * 100)) : 0;
+        el('g3-tl-bar').style.width = pct + '%';
+        el('g3-today').textContent = 'Hôm nay: ' + fmt(Math.round(state.met)) + ' m • +' + fmt(state.expToday) + ' EXP';
+        el('g3-exp').textContent = '⭐ Tổng EXP (mô phỏng): ' + fmt(state.expToday) + ' · Cấp HĐ ' + capHoatDong();
+    }
+    function setStatus(t) { el('g3-status').textContent = t; }
+    var toastTimer = null;
+    function toast(t) {
+        var d = el('g3-toast');
+        d.textContent = t;
+        d.style.opacity = '1';
+        if (toastTimer) clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () { d.style.opacity = '0'; }, 2800);
+    }
+    function toggleButtons() {
+        var on = (mode !== 'idle');
+        el('g3-btn-start').disabled = (mode === 'gps');
+        el('g3-btn-start').style.opacity = (mode === 'gps') ? '.45' : '1';
+        el('g3-btn-demo').disabled = on;
+        el('g3-btn-demo').style.opacity = on ? '.45' : '1';
+        el('g3-btn-stop').disabled = !on;
+        el('g3-btn-stop').style.opacity = on ? '1' : '.45';
+    }
+
+    // ================= TÍNH QUÃNG ĐƯỜNG / THỂ LỰC / EXP (mô phỏng ngay trên máy) =================
+    function haversineM(a, b) {
+        var R = 6371000;
+        var dLat = (b.lat - a.lat) * Math.PI / 180;
+        var dLng = (b.lng - a.lng) * Math.PI / 180;
+        var s1 = Math.sin(dLat / 2), s2 = Math.sin(dLng / 2);
+        var h = s1 * s1 + Math.cos(a.lat * Math.PI / 180) * Math.cos(b.lat * Math.PI / 180) * s2 * s2;
+        return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+    }
+
+    // Cộng d mét "đã được máy chủ chấp nhận": mét luôn vào tổng; chỉ phần còn Thể Lực
+    // (và chưa chạm trần EXP ngày) mới sinh EXP + hao Thể Lực, qua 2 bộ đếm mét lẻ.
+    function accumulate(d) {
+        if (!(d > 0)) return;
+        state.met += d;
+        var remain = d;
+        var gainedBefore = state.expToday;
+        while (remain > 0.000001) {
+            if (state.theLuc <= 0) break;              // kiệt sức: phần còn lại không được trả
+            if (state.expToday >= EXP_DAY_CAP) break;  // chạm trần ngày: dừng cả EXP lẫn hao Thể Lực
+            var seg = Math.min(remain, 50 - state.metDuTl);
+            state.metDuExp += seg;
+            state.metDuTl += seg;
+            remain -= seg;
+            while (state.metDuExp >= 10) {
+                state.metDuExp -= 10;
+                state.expToday++;
+            }
+            if (state.metDuTl >= 50) {
+                state.metDuTl -= 50;
+                state.theLuc = Math.max(0, state.theLuc - 1);
+            }
+        }
+        renderHUD();
+        if (state.expToday > gainedBefore) toast('+' + (state.expToday - gainedBefore) + ' EXP ⭐');
+        if (state.theLuc <= 0 && mode === 'gps') {
+            setStatus('😵 Kiệt sức — đi nữa vẫn tính mét nhưng không +EXP. Chờ Thể Lực hồi (+1 mỗi 30 giây ở bản test này).');
+        }
+    }
+
+    // Bộ lọc điểm GPS giống máy chủ: acc > 50m bỏ; tốc độ > 15 km/h bỏ đoạn;
+    // nhảy > 200m trong < 10 giây bỏ đoạn; đoạn bị bỏ KHÔNG dời điểm neo.
+    var lastFix = null; // {lat, lng, ts} — điểm được chấp nhận gần nhất
+    function processFix(lat, lng, tsSec, acc) {
+        var cur = { lat: lat, lng: lng, ts: tsSec };
+        if (acc !== null && acc !== undefined && acc > 50) {
+            setStatus('📡 Tín hiệu GPS yếu (sai số ' + Math.round(acc) + 'm) — điểm này không tính EXP, hãy ra chỗ thoáng hơn…');
+            return;
+        }
+        if (!lastFix) { lastFix = cur; return; }
+        var d = haversineM(lastFix, cur);
+        var dt = tsSec - lastFix.ts;
+        if (dt <= 0) return;
+        if (d > 200 && dt < 10) return;
+        if (d / dt > 4.1667) return;
+        if (d >= 0.5) accumulate(d);
+        lastFix = cur;
+    }
+
+    // ================= ĐỘNG PHỦ (xem trước kỳ 20C) =================
+    var home = null;
+    try {
+        var hs = localStorage.getItem('dong_phu_test');
+        if (hs) home = JSON.parse(hs);
+    } catch (e) {}
+    var homeGroup = null;
+
+    function homeDist() {
+        if (!home || !curLatLng) return null;
+        return haversineM(curLatLng, home);
+    }
+    function atHome() {
+        var d = homeDist();
+        return d !== null && d <= 100;
+    }
+    function updateHomeUI() {
+        var d = homeDist();
+        if (!home) el('g3-home').textContent = '🏠 Động Phủ: chưa đặt';
+        else if (d === null) el('g3-home').textContent = '🏠 Động Phủ: đã đặt (chưa rõ khoảng cách)';
+        else if (d <= 100) el('g3-home').textContent = '🏠 Đang ở Động Phủ (cách ' + Math.round(d) + 'm)';
+        else el('g3-home').textContent = '🏠 Động Phủ: cách ' + fmt(Math.round(d)) + 'm';
+        var ok = atHome();
+        el('g3-btn-post').disabled = !ok;
+        el('g3-btn-post').style.opacity = ok ? '1' : '.45';
+        el('g3-btn-pet').disabled = !ok;
+        el('g3-btn-pet').style.opacity = ok ? '1' : '.45';
+        el('g3-home-hint').textContent = !home
+            ? 'Hãy bấm “Đặt Động Phủ tại đây” khi đang đứng ở nhà.'
+            : (ok ? '✅ Đang ở Động Phủ — đăng truyện & chăm sủng thú làm được.'
+                  : '🔒 Phải về Động Phủ (trong vòng 100m) mới đăng truyện / chăm sủng thú được.');
+    }
+    function setHome() {
+        if (!curLatLng) {
+            toast('Hãy Bật GPS hoặc Xem thử trước đã');
+            return;
+        }
+        home = { lat: curLatLng.lat, lng: curLatLng.lng };
+        try { localStorage.setItem('dong_phu_test', JSON.stringify(home)); } catch (e) {}
+        placeHomeMarker();
+        updateHomeUI();
+        updatePoiPanel();
+        toast('🏠 Đã đặt Động Phủ tại vị trí hiện tại');
+    }
+    function clearHome() {
+        home = null;
+        try { localStorage.removeItem('dong_phu_test'); } catch (e) {}
+        if (homeGroup && three) { three.scene.remove(homeGroup); homeGroup = null; }
+        updateHomeUI();
+        updatePoiPanel();
+        toast('Đã xóa Động Phủ');
+    }
+
+    // ================= KHU VỰC POI (xem trước) =================
+    var ZONES = {
+        supermarket: { emoji: '🛒', label: 'Chợ Tông Môn', tag: 'Siêu thị', color: 0xf59e0b, css: '#b45309', radius: 100 },
+        convenience: { emoji: '🏪', label: 'Luyện Khí • Luyện Đan', tag: 'Combini', color: 0x0284c7, css: '#0369a1', radius: 100 },
+        school:      { emoji: '🏫', label: 'Chế Phù Các', tag: 'Trường học', color: 0x7c3aed, css: '#6d28d9', radius: 100 },
+        books:       { emoji: '📚', label: 'Chế Phù Các', tag: 'Hiệu sách', color: 0x7c3aed, css: '#6d28d9', radius: 100 },
+        park:        { emoji: '🌳', label: 'Dược Viên', tag: 'Công viên', color: 0x16a34a, css: '#15803d', radius: 100 },
+        water:       { emoji: '🎣', label: 'Đầm Câu', tag: 'Mặt nước', color: 0x2563eb, css: '#1d4ed8', radius: 50 },
+        zoo:         { emoji: '🌀', label: 'Bí Cảnh', tag: 'Sở thú', color: 0xdb2777, css: '#be185d', radius: 100 },
+        museum:      { emoji: '🌀', label: 'Bí Cảnh', tag: 'Bảo tàng', color: 0xdb2777, css: '#be185d', radius: 100 }
+    };
+    var ZONE_ORDER = ['supermarket', 'convenience', 'school', 'books', 'park', 'water', 'zoo', 'museum'];
+    var pois = [];        // {type, lat, lng, name}
+    var poiKeys = {};     // chống trùng khi các ô bản đồ chồng lấn
+    var curZoneKey = null;
+
+    function poiTypeOf(tags) {
+        if (!tags) return null;
+        if (tags.shop === 'supermarket') return 'supermarket';
+        if (tags.shop === 'convenience') return 'convenience';
+        if (tags.shop === 'books') return 'books';
+        if (tags.amenity === 'school') return 'school';
+        if (tags.leisure === 'park') return 'park';
+        if (tags.natural === 'water') return 'water';
+        if (tags.tourism === 'zoo') return 'zoo';
+        if (tags.tourism === 'museum') return 'museum';
+        return null;
+    }
+
+    function nearestPoiDist(type) {
+        if (!curLatLng) return null;
+        var best = null;
+        for (var i = 0; i < pois.length; i++) {
+            if (pois[i].type !== type) continue;
+            var d = haversineM(curLatLng, pois[i]);
+            if (best === null || d < best) best = d;
+        }
+        return best;
+    }
+
+    function currentZone() {
+        if (!curLatLng) return null;
+        var bestKey = null, bestD = Infinity;
+        for (var i = 0; i < pois.length; i++) {
+            var z = ZONES[pois[i].type];
+            var d = haversineM(curLatLng, pois[i]);
+            if (d <= z.radius && d < bestD) { bestD = d; bestKey = pois[i].type; }
+        }
+        return bestKey;
+    }
+
+    function updatePoiPanel() {
+        for (var i = 0; i < ZONE_ORDER.length; i++) {
+            var t = ZONE_ORDER[i];
+            var cell = el('g3-d-' + t);
+            if (!cell) continue;
+            var d = nearestPoiDist(t);
+            cell.textContent = (d === null) ? '—' : (d < 1000 ? Math.round(d) + 'm' : (d / 1000).toFixed(1) + 'km');
+        }
+        var zk = currentZone();
+        if (zk) {
+            var z = ZONES[zk];
+            el('g3-zone').textContent = '📍 Khu hiện tại: ' + z.emoji + ' ' + z.label + ' (' + z.tag + ')';
+        } else if (atHome()) {
+            el('g3-zone').textContent = '📍 Khu hiện tại: 🏠 Động Phủ';
+        } else {
+            el('g3-zone').textContent = '📍 Khu hiện tại: ngoài khu vực đặc biệt (Du Hành)';
+        }
+        if (zk !== curZoneKey) {
+            if (zk && curZoneKey !== null) toast('📍 Bạn đang ở khu: ' + ZONES[zk].label);
+            curZoneKey = zk;
+        }
+    }
+
+    // ================= 3D (Three.js) — nền từ bản 20A =================
+    var CELL_DEG = 0.0032; // cạnh 1 ô bản đồ ~350m
+    var M_PER_DEG_LAT = 111320;
+    var three = null;
+    var origin = null; // {lat, lng} gốc tọa độ cục bộ (mét)
+
+    function mPerDegLng(lat) { return 111320 * Math.cos(lat * Math.PI / 180); }
+    function toLocal(lat, lng) {
+        return {
+            x: (lng - origin.lng) * mPerDegLng(origin.lat),
+            z: -(lat - origin.lat) * M_PER_DEG_LAT
+        };
+    }
+    function cellKey(lat, lng) {
+        return Math.floor(lat / CELL_DEG) + ':' + Math.floor(lng / CELL_DEG);
+    }
+
+    var ROAD_STYLE = {
+        motorway: [9, '#f0a35e'], trunk: [9, '#f0a35e'], primary: [8, '#f6c453'],
+        secondary: [6.5, '#f9e08a'], tertiary: [5.5, '#eef2f5'], residential: [5, '#eef2f5'],
+        unclassified: [5, '#e6ebf0'], service: [3.5, '#dde4ea'], footway: [2, '#cbb489'],
+        path: [2, '#cbb489'], pedestrian: [3, '#e8ddc4'], cycleway: [2, '#b9d3a8'], steps: [2, '#cbb489']
+    };
+    var BLD_COLORS = ['#d9c7a7', '#c7d3e0', '#e2c9c9', '#cfe0c7', '#ddd3ba', '#cdbfd8'];
+
+    function pushQuad(pos, col, a, b, width, color) {
+        var dx = b.x - a.x, dz = b.z - a.z;
+        var len = Math.sqrt(dx * dx + dz * dz) || 1;
+        var px = -dz / len * width / 2, pz = dx / len * width / 2;
+        var v = [
+            [a.x + px, 0, a.z + pz], [a.x - px, 0, a.z - pz], [b.x - px, 0, b.z - pz],
+            [a.x + px, 0, a.z + pz], [b.x - px, 0, b.z - pz], [b.x + px, 0, b.z + pz]
+        ];
+        for (var i = 0; i < 6; i++) {
+            pos.push(v[i][0], v[i][1], v[i][2]);
+            col.push(color.r, color.g, color.b);
+        }
+    }
+
+    function addBuilding(group, pts, tags) {
+        var levels = parseInt(tags['building:levels'], 10);
+        var h = parseFloat(tags.height);
+        if (isNaN(h) || h <= 0) h = (!isNaN(levels) && levels > 0 ? levels : 3) * 3;
+        h = Math.max(3, Math.min(90, h));
+        try {
+            var shape = new THREE.Shape();
+            for (var i = 0; i < pts.length; i++) {
+                if (i === 0) shape.moveTo(pts[i].x, -pts[i].z);
+                else shape.lineTo(pts[i].x, -pts[i].z);
+            }
+            shape.closePath();
+            var geo = new THREE.ExtrudeGeometry(shape, { depth: h, bevelEnabled: false });
+            geo.rotateX(-Math.PI / 2);
+            var hash = 0;
+            var seed = Math.round(pts[0].x * 10) + ':' + Math.round(pts[0].z * 10);
+            for (var j = 0; j < seed.length; j++) hash = (hash * 31 + seed.charCodeAt(j)) >>> 0;
+            var mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: BLD_COLORS[hash % BLD_COLORS.length] }));
+            group.add(mesh);
+        } catch (e) { /* footprint lỗi hình học — bỏ qua tòa này */ }
+    }
+
+    function makeEmojiSprite(emoji, scale) {
+        var cv = document.createElement('canvas');
+        cv.width = 192; cv.height = 192;
+        var ctx = cv.getContext('2d');
+        ctx.font = '138px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(emoji, 96, 104);
+        var tex = new THREE.CanvasTexture(cv);
+        var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+        var s = scale || 9;
+        sp.scale.set(s, s, 1);
+        return sp;
+    }
+
+    function makeLabelSprite(text, cssColor) {
+        var cv = document.createElement('canvas');
+        cv.width = 512; cv.height = 104;
+        var ctx = cv.getContext('2d');
+        ctx.font = 'bold 44px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.lineWidth = 10;
+        ctx.strokeStyle = 'rgba(255,255,255,0.92)';
+        ctx.strokeText(text, 256, 52);
+        ctx.fillStyle = cssColor || '#1f2937';
+        ctx.fillText(text, 256, 52);
+        var tex = new THREE.CanvasTexture(cv);
+        var sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
+        sp.scale.set(30, 6.1, 1);
+        return sp;
+    }
+
+    function addPoiMarker(group, type, lat, lng, name) {
+        var key = type + '@' + lat.toFixed(5) + ',' + lng.toFixed(5);
+        if (poiKeys[key]) return;
+        poiKeys[key] = true;
+        pois.push({ type: type, lat: lat, lng: lng, name: name || '' });
+        var z = ZONES[type];
+        var p = toLocal(lat, lng);
+        var ring = new THREE.Mesh(
+            new THREE.RingGeometry(6.5, 8.2, 40),
+            new THREE.MeshBasicMaterial({ color: z.color, transparent: true, opacity: 0.85, side: THREE.DoubleSide })
+        );
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.set(p.x, 0.22, p.z);
+        group.add(ring);
+        var sp = makeEmojiSprite(z.emoji, 9);
+        sp.position.set(p.x, 8, p.z);
+        group.add(sp);
+        var labelText = name ? (z.label + ' · ' + name) : z.label;
+        var lb = makeLabelSprite(labelText, z.css);
+        lb.position.set(p.x, 14.5, p.z);
+        group.add(lb);
+    }
+
+    function buildCell(key, json) {
+        if (!three || !json || !json.elements) return;
+        var group = new THREE.Group();
+        var roadPos = [], roadCol = [];
+        var cTmp = new THREE.Color();
+        json.elements.forEach(function (elm) {
+            var tags = elm.tags || {};
+            var ptype = poiTypeOf(tags);
+            if (elm.type === 'way' && elm.geometry && elm.geometry.length >= 2) {
+                var pts = [];
+                for (var i = 0; i < elm.geometry.length; i++) pts.push(toLocal(elm.geometry[i].lat, elm.geometry[i].lon));
+                if (tags.building) {
+                    addBuilding(group, pts, tags);
+                } else if (tags.highway) {
+                    var st = ROAD_STYLE[tags.highway] || [4, '#dfe6ee'];
+                    cTmp.set(st[1]);
+                    for (var k = 0; k + 1 < pts.length; k++) pushQuad(roadPos, roadCol, pts[k], pts[k + 1], st[0], cTmp);
+                }
+                if (ptype) {
+                    var cx = 0, cy = 0;
+                    for (var j = 0; j < elm.geometry.length; j++) { cx += elm.geometry[j].lat; cy += elm.geometry[j].lon; }
+                    addPoiMarker(group, ptype, cx / elm.geometry.length, cy / elm.geometry.length, tags.name);
+                }
+            } else if (elm.type === 'node' && ptype) {
+                addPoiMarker(group, ptype, elm.lat, elm.lon, tags.name);
+            }
+        });
+        if (roadPos.length) {
+            var geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.Float32BufferAttribute(roadPos, 3));
+            geo.setAttribute('color', new THREE.Float32BufferAttribute(roadCol, 3));
+            var mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }));
+            mesh.position.y = 0.12;
+            group.add(mesh);
+        }
+        three.scene.add(group);
+        three.cells[key] = group;
+        updatePoiPanel();
+    }
+
+    function fetchCell(key, clat, clng) {
+        var storeKey = 'test_g3_cell_' + key;
+        try {
+            var cached = localStorage.getItem(storeKey);
+            if (cached) { buildCell(key, JSON.parse(cached)); return; }
+        } catch (e) {}
+        var half = CELL_DEG * 0.78;
+        var bbox = '(' + (clat - half) + ',' + (clng - half) + ',' + (clat + half) + ',' + (clng + half) + ')';
+        var q = '[out:json][timeout:25];(' +
+            'way["highway"]' + bbox + ';' +
+            'way["building"]' + bbox + ';' +
+            'node["shop"~"supermarket|convenience|books"]' + bbox + ';' +
+            'way["shop"~"supermarket|convenience|books"]' + bbox + ';' +
+            'node["amenity"="school"]' + bbox + ';' +
+            'way["amenity"="school"]' + bbox + ';' +
+            'node["leisure"="park"]' + bbox + ';' +
+            'way["leisure"="park"]' + bbox + ';' +
+            'way["natural"="water"]' + bbox + ';' +
+            'node["tourism"~"zoo|museum"]' + bbox + ';' +
+            'way["tourism"~"zoo|museum"]' + bbox + ';' +
+            ');out geom;';
+        fetch('https://overpass-api.de/api/interpreter', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'data=' + encodeURIComponent(q)
+        }).then(function (r) { return r.json(); }).then(function (json) {
+            try {
+                var s = JSON.stringify(json);
+                if (s.length < 600000) localStorage.setItem(storeKey, s);
+            } catch (e) {}
+            buildCell(key, json);
+        }).catch(function () {
+            if (three && three.cells[key] === 'loading') delete three.cells[key];
+        });
+    }
+
+    function ensureCell(lat, lng) {
+        if (!three) return;
+        var key = cellKey(lat, lng);
+        if (three.cells[key]) return;
+        three.cells[key] = 'loading';
+        var clat = (Math.floor(lat / CELL_DEG) + 0.5) * CELL_DEG;
+        var clng = (Math.floor(lng / CELL_DEG) + 0.5) * CELL_DEG;
+        fetchCell(key, clat, clng);
+    }
+
+    function setChibiTexture() {
+        if (!three) return;
+        var img = new Image();
+        img.onload = function () {
+            var cv = document.createElement('canvas');
+            cv.width = 168; cv.height = 196;
+            var ctx = cv.getContext('2d');
+            ctx.drawImage(img, 0, 0, 168, 196);
+            var tex = new THREE.CanvasTexture(cv);
+            three.avatar.material.map = tex;
+            three.avatar.material.needsUpdate = true;
+            three.avatar.visible = true;
+            three.ring.visible = true;
+        };
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(chibiSVG(chibiCfg, 168));
+    }
+
+    function placeHomeMarker() {
+        if (!three || !origin || !home) return;
+        if (homeGroup) { three.scene.remove(homeGroup); homeGroup = null; }
+        homeGroup = new THREE.Group();
+        var p = toLocal(home.lat, home.lng);
+        var ring = new THREE.Mesh(
+            new THREE.RingGeometry(96, 100, 72),
+            new THREE.MeshBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.5, side: THREE.DoubleSide })
+        );
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.set(p.x, 0.25, p.z);
+        homeGroup.add(ring);
+        var sp = makeEmojiSprite('🏠', 13);
+        sp.position.set(p.x, 11, p.z);
+        homeGroup.add(sp);
+        var lb = makeLabelSprite('ĐỘNG PHỦ', '#b45309');
+        lb.position.set(p.x, 19, p.z);
+        homeGroup.add(lb);
+        three.scene.add(homeGroup);
+    }
+
+    function onResize() {
+        if (!three) return;
+        var vp = el('g3-viewport');
+        three.renderer.setSize(vp.clientWidth, vp.clientHeight);
+        three.camera.aspect = vp.clientWidth / vp.clientHeight;
+        three.camera.updateProjectionMatrix();
+    }
+
+    var walkPhase = 0;
+    var demoAngle = 0, demoLast = 0;
+    var uiLast = 0;
+    function tick(t) {
+        requestAnimationFrame(tick);
+        if (!three) return;
+        if (mode === 'demo') {
+            var dt = Math.min(0.05, ((t || 0) - demoLast) / 1000 || 0.016);
+            demoLast = t || 0;
+            demoAngle += dt * 1.4 / 30; // ~1.4 m/s trên vòng tròn bán kính 30m
+            three.target = { x: Math.cos(demoAngle) * 30, z: Math.sin(demoAngle) * 30 };
+            if (dt > 0) accumulate(1.4 * dt); // bản test: demo cũng mô phỏng mét/EXP
+            var av0 = three.avatar.position;
+            curLatLng = {
+                lat: origin.lat - av0.z / M_PER_DEG_LAT,
+                lng: origin.lng + av0.x / mPerDegLng(origin.lat)
+            };
+        }
+        var a = three.avatar;
+        var dx = three.target.x - a.position.x, dz = three.target.z - a.position.z;
+        var dist = Math.sqrt(dx * dx + dz * dz);
+        var moving = dist > 0.4;
+        if (moving) {
+            var step = Math.min(dist, 0.55);
+            a.position.x += dx / dist * step;
+            a.position.z += dz / dist * step;
+            walkPhase += 0.25;
+        }
+        a.position.y = 3.8 + (moving ? Math.abs(Math.sin(walkPhase)) * 0.35 : 0);
+        three.ring.position.x = a.position.x;
+        three.ring.position.z = a.position.z;
+        var s = 1 + Math.sin((t || 0) / 420) * 0.08;
+        three.ring.scale.set(s, s, 1);
+        if (!three.camInit) {
+            three.camera.position.set(a.position.x, 58, a.position.z + 44);
+            three.camInit = true;
+        }
+        three.camera.position.x += (a.position.x - three.camera.position.x) * 0.06;
+        three.camera.position.y += (58 - three.camera.position.y) * 0.06;
+        three.camera.position.z += (a.position.z + 44 - three.camera.position.z) * 0.06;
+        three.camera.lookAt(a.position.x, 2, a.position.z);
+        three.renderer.render(three.scene, three.camera);
+        if ((t || 0) - uiLast > 600) {
+            uiLast = t || 0;
+            updateHomeUI();
+            updatePoiPanel();
+        }
+    }
+
+    function initThree() {
+        if (three) return true;
+        if (!window.THREE) return false;
+        var vp = el('g3-viewport');
+        var renderer;
+        try {
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+        } catch (e) {
+            return false;
+        }
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setSize(vp.clientWidth, vp.clientHeight);
+        vp.appendChild(renderer.domElement);
+        var hint = el('g3-vp-hint');
+        if (hint) hint.style.display = 'none';
+        var scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x9fc7e8);
+        scene.fog = new THREE.Fog(0x9fc7e8, 280, 950);
+        var camera = new THREE.PerspectiveCamera(55, vp.clientWidth / vp.clientHeight, 0.5, 3000);
+        camera.position.set(0, 58, 44);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+        var sun = new THREE.DirectionalLight(0xfff2cc, 0.75);
+        sun.position.set(120, 220, 60);
+        scene.add(sun);
+        var ground = new THREE.Mesh(
+            new THREE.CircleGeometry(1600, 48),
+            new THREE.MeshLambertMaterial({ color: 0x9ed08a })
+        );
+        ground.rotation.x = -Math.PI / 2;
+        ground.position.y = -0.05;
+        scene.add(ground);
+        var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true }));
+        sprite.scale.set(6.4, 7.5, 1);
+        sprite.position.set(0, 3.8, 0);
+        sprite.visible = false;
+        scene.add(sprite);
+        var ring = new THREE.Mesh(
+            new THREE.RingGeometry(2.3, 3.1, 40),
+            new THREE.MeshBasicMaterial({ color: 0xffc93c, transparent: true, opacity: 0.85, side: THREE.DoubleSide })
+        );
+        ring.rotation.x = -Math.PI / 2;
+        ring.position.y = 0.18;
+        ring.visible = false;
+        scene.add(ring);
+        three = {
+            scene: scene, camera: camera, renderer: renderer,
+            avatar: sprite, ring: ring,
+            target: { x: 0, z: 0 }, cells: {}, camInit: false
+        };
+        setChibiTexture();
+        placeHomeMarker();
+        window.addEventListener('resize', onResize);
+        requestAnimationFrame(tick);
+        return true;
+    }
+
+    // ================= GPS THẬT (xử lý mô phỏng ngay trên máy) =================
+    var watchId = null;
+
+    function onGPS(pos) {
+        var lat = pos.coords.latitude, lng = pos.coords.longitude;
+        var tsSec = pos.timestamp ? Math.round(pos.timestamp / 1000) : Math.floor(Date.now() / 1000);
+        var acc = (pos.coords.accuracy == null ? null : Math.round(pos.coords.accuracy));
+        if (!origin) {
+            origin = { lat: lat, lng: lng };
+            three.avatar.position.set(0, 3.8, 0);
+            three.target = { x: 0, z: 0 };
+            placeHomeMarker();
+        }
+        curLatLng = { lat: lat, lng: lng };
+        three.target = toLocal(lat, lng);
+        ensureCell(lat, lng);
+        processFix(lat, lng, tsSec, acc);
+        if (state.theLuc > 0 && acc !== null && acc <= 50) {
+            setStatus('🚶 Đang di chuyển — cứ đi bộ, EXP mô phỏng tự cộng theo mét đường đi…');
+        }
+        updateHomeUI();
+        updatePoiPanel();
+    }
+
+    function onGPSError(err) {
+        if (err && err.code === 1) {
+            setStatus('❌ Chưa được cấp quyền vị trí. Hãy cho phép truy cập vị trí trong cài đặt trình duyệt, rồi bấm "Bật GPS" lại.');
+        } else {
+            setStatus('⚠️ GPS chập chờn — đang tự thử lại…');
+        }
+    }
+
+    function startGPS() {
+        if (!navigator.geolocation) {
+            setStatus('❌ Thiết bị / trình duyệt này không hỗ trợ GPS.');
+            return;
+        }
+        if (!initThree()) {
+            setStatus('❌ Không khởi tạo được bản đồ 3D (WebGL hoặc mạng tải thư viện). Hãy tải lại trang rồi thử lại.');
+            return;
+        }
+        mode = 'gps';
+        lastFix = null;
+        toggleButtons();
+        setStatus('📡 Đang tìm tín hiệu GPS — hãy ra chỗ thoáng và bắt đầu đi bộ…');
+        watchId = navigator.geolocation.watchPosition(onGPS, onGPSError, {
+            enableHighAccuracy: true, maximumAge: 2000, timeout: 25000
+        });
+    }
+
+    function stopAll() {
+        if (watchId !== null) {
+            navigator.geolocation.clearWatch(watchId);
+            watchId = null;
+        }
+        mode = 'idle';
+        toggleButtons();
+        setStatus('⏸ Đã dừng. Bấm "Bật GPS" khi muốn đi tiếp, hoặc "Xem thử" để ngắm bản đồ.');
+    }
+
+    function startDemo() {
+        if (!initThree()) {
+            setStatus('❌ Không khởi tạo được bản đồ 3D (WebGL hoặc mạng tải thư viện). Hãy tải lại trang rồi thử lại.');
+            return;
+        }
+        if (!origin) {
+            origin = { lat: 35.6812, lng: 139.7671 }; // Ga Tokyo
+            placeHomeMarker();
+        }
+        mode = 'demo';
+        demoAngle = 0;
+        demoLast = performance.now();
+        ensureCell(origin.lat, origin.lng);
+        toggleButtons();
+        setStatus('👀 Chế độ xem thử quanh Ga Tokyo — nhân vật tự đi dạo, số liệu là MÔ PHỎNG. Thử bấm "Đặt Động Phủ" rồi xem nút Đăng truyện sáng lên khi nhân vật ở gần nhà.');
+    }
+
+    // ================= KHỞI TẠO =================
+    document.addEventListener('DOMContentLoaded', function () {
+        el('g3-btn-start').addEventListener('click', startGPS);
+        el('g3-btn-stop').addEventListener('click', stopAll);
+        el('g3-btn-demo').addEventListener('click', startDemo);
+        el('g3-btn-home').addEventListener('click', setHome);
+        el('g3-btn-clear-home').addEventListener('click', clearHome);
+        el('g3-btn-post').addEventListener('click', function () {
+            toast('✅ (Demo) Đã gửi truyện lên Tàng Kinh Các chờ duyệt!');
+        });
+        el('g3-btn-pet').addEventListener('click', function () {
+            toast('✅ (Demo) Đã cho sủng thú ăn — thú vui vẻ hẳn lên!');
+        });
+        el('g3-btn-read').addEventListener('click', function () {
+            toast('📖 (Demo) Tàng Kinh Các mở được ở mọi nơi — đọc/nghe truyện thỏa thích!');
+        });
+        // Bản test hồi Thể Lực nhanh để dễ kiểm tra: +1 mỗi 30 giây (bản thật: +1 mỗi 5 phút)
+        setInterval(function () {
+            if (state.theLuc < state.theLucMax) {
+                state.theLuc++;
+                renderHUD();
+            }
+        }, 30000);
+        renderHUD();
+        updateHomeUI();
+        updatePoiPanel();
+        if (home) setStatus('⏳ Đã khôi phục Động Phủ đã đặt lần trước. Bấm "Bật GPS" hoặc "Xem thử" để tiếp tục test.');
+    });
+})();
+</script>
+</body>
+</html>
