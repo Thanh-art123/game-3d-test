@@ -69,6 +69,8 @@
     .ov-close { margin-top: 11px; width: 100%; background: #334155; padding: 9px; }
     #g3-home-hint { font-size: 12.5px; color: #fca5a5; margin-top: 6px; font-weight: 700; }
     .sect-title { font-size: 15px; font-weight: 900; color: #b45309; margin: 14px 0 4px; }
+    #g3-viewport canvas { touch-action: none; display: block; }
+    #map-attrib { position: absolute; right: 8px; bottom: 60px; z-index: 4; font-size: 10px; font-weight: 700; color: rgba(255,255,255,.94); background: rgba(15,23,42,.45); padding: 2px 7px; border-radius: 999px; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -83,6 +85,7 @@
             2️⃣ Đang đứng ở nhà thì bấm <b>🏠 Đặt Động Phủ tại đây</b> — sau đó đi xa rồi quay về: chỉ khi <b>trong vòng 100m quanh Động Phủ</b> mới bấm được “Đăng truyện” và “Cho sủng thú ăn” (đúng luật bản thật). Đọc/nghe truyện thì ở đâu cũng mở được.<br>
             3️⃣ Đi ngang các điểm trên bản đồ: 🛒 siêu thị = Chợ Tông Môn, 🏪 combini = Luyện Khí/Luyện Đan, 🏫 trường / 📚 hiệu sách = Chế Phù, 🌳 công viên = Dược Viên, 🎣 mặt nước = Đầm Câu, 🌀 sở thú/bảo tàng = Bí Cảnh.<br>
             4️⃣ Chưa tiện đi thì bấm <b>👀 Xem thử</b>: nhân vật tự đi dạo quanh Ga Tokyo, số liệu vẫn mô phỏng để xem Thể Lực/EXP chạy ra sao.<br>
+            5️⃣ 🖐️ Vuốt ngang: xoay góc nhìn • Kéo dọc: chỉnh độ nghiêng • Chụm 2 ngón: phóng to/thu nhỏ • ⟲: về góc mặc định<br>
             <span class="small">Lưu ý bản test: Thể Lực hồi nhanh +1 mỗi 30 giây cho dễ kiểm tra (bản thật: +1 mỗi 5 phút + ngồi tu luyện nghe truyện). App phải đang mở khi đi — đóng trang/khóa máy lâu thì GPS ngừng (giới hạn trình duyệt). Vị trí chỉ xử lý ngay trên máy, trang test không gửi vị trí đi đâu cả.</span>
         </div>
 
@@ -116,11 +119,14 @@
                 <button id="g3-btn-start" class="btn-green">📍 Bật GPS</button>
                 <button id="g3-btn-stop" class="btn-red" disabled style="opacity:.45">⏸ Dừng</button>
                 <button id="g3-btn-demo" class="btn-sky">👀 Xem thử (Ga Tokyo)</button>
+                <button id="ov-cam-reset" class="btn-slate">⟲ Góc mặc định</button>
             </div>
 
             <button id="ov-home" type="button"><span id="g3-home">🏠 Động Phủ: chưa đặt</span></button>
 
             <button id="ov-menu" type="button" aria-label="Menu chính">☰</button>
+
+            <div id="map-attrib">Ảnh vệ tinh © Esri World Imagery • Dữ liệu bản đồ © OpenStreetMap</div>
 
             <div id="ov-home-panel" class="ov-sheet" hidden>
                 <div class="ov-sheet-title">🏠 Động Phủ</div>
@@ -516,6 +522,20 @@
     var M_PER_DEG_LAT = 111320;
     var three = null;
     var origin = null; // {lat, lng} gốc tọa độ cục bộ (mét)
+    // Khung hình kiểu Pokémon GO: camera cao 135m, lùi sau lưng 90m, FOV 58,
+    // điểm nhìn chếch 18m về phía trước nhân vật -> nhân vật nằm dưới tâm, thấy được ~200–250m quanh mình
+    var CAM_H = 135, CAM_BACK = 90, CAM_AHEAD = 18;
+    var AV_Y = 4.7; // (bản cũ: tâm sprite 2D — nay nhân vật là mô hình 3D đặt chân tại y=0)
+    // Kiểu nền bản đồ: 'satellite' = ảnh vệ tinh thật (Esri) + nhà 3D bên trên | 'vector' = nền phẳng + đường vẽ như cũ
+    var MAP_STYLE = 'satellite';
+    var SAT_ZOOM = 18;
+    var SAT_SCALE = 256 * Math.pow(2, SAT_ZOOM); // tổng số pixel toàn cầu ở zoom 18 (kiểu slippy-map)
+    var ESRI_TILE = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/' + SAT_ZOOM + '/{y}/{x}';
+    // Khung camera mặc định suy ra từ CAM_H/CAM_BACK: khoảng cách chéo ~162, góc nâng ~56°
+    var CAM_DEF_DIST = Math.sqrt(CAM_H * CAM_H + CAM_BACK * CAM_BACK);
+    var CAM_DEF_EL = Math.atan2(CAM_H, CAM_BACK);
+    var CAM_EL_MIN = 25 * Math.PI / 180, CAM_EL_MAX = 70 * Math.PI / 180; // kẹp góc nâng 25°–70°
+    var CAM_DIST_MIN = 60, CAM_DIST_MAX = 320;
 
     function mPerDegLng(lat) { return 111320 * Math.cos(lat * Math.PI / 180); }
     function toLocal(lat, lng) {
@@ -528,13 +548,31 @@
         return Math.floor(lat / CELL_DEG) + ':' + Math.floor(lng / CELL_DEG);
     }
 
+    // Bề rộng đường theo loại highway (mét, gần tỉ lệ thật) để đường không thành dải khổng lồ
     var ROAD_STYLE = {
-        motorway: [9, '#5b7a99'], trunk: [9, '#5b7a99'], primary: [8, '#54708c'],
-        secondary: [6.5, '#4d637c'], tertiary: [5.5, '#46586e'], residential: [5, '#42536a'],
-        unclassified: [5, '#42536a'], service: [3.5, '#3b4b61'], footway: [2, '#37485e'],
-        path: [2, '#37485e'], pedestrian: [3, '#3f5269'], cycleway: [2, '#3e5c66'], steps: [2, '#37485e']
+        motorway: [14, '#5b7a99'], trunk: [14, '#5b7a99'], primary: [12, '#54708c'],
+        secondary: [10, '#4d637c'], tertiary: [8, '#46586e'], residential: [6, '#42536a'],
+        unclassified: [6, '#42536a'], service: [4, '#3b4b61'], footway: [2, '#37485e'],
+        path: [2, '#37485e'], pedestrian: [2, '#3f5269'], cycleway: [2, '#3e5c66'], steps: [2, '#37485e']
     };
-    var BLD_COLORS = ['#b9c4cf', '#aebac6', '#c3ccd4', '#a4b2c0', '#bcc7d1', '#9fb0bf'];
+    // Bảng màu nhà kiểu khối Pokémon GO: xám-xanh nhạt / trắng ấm / be nhạt.
+    // ExtrudeGeometry có 2 nhóm vật liệu: [0] = mặt trên/dưới, [1] = mặt bên.
+    // Mỗi màu làm sẵn 1 cặp: mặt trên giữ nguyên tông, mặt bên tối hơn (~×0.8) cho khối nhà đỡ "cục phẳng".
+    var BLD_COLORS = ['#c3cedb', '#ccd3da', '#e8e2d4', '#ded3bc', '#b7c6d4', '#e0d7c6'];
+    var BLD_MATS = null; // tạo lười ở lần dựng nhà đầu tiên (khi THREE đã sẵn sàng)
+    function buildingMats(idx) {
+        if (!BLD_MATS) {
+            BLD_MATS = BLD_COLORS.map(function (hex) {
+                var top = new THREE.Color(hex);
+                var side = top.clone().multiplyScalar(0.8);
+                return [
+                    new THREE.MeshLambertMaterial({ color: top }),
+                    new THREE.MeshLambertMaterial({ color: side })
+                ];
+            });
+        }
+        return BLD_MATS[idx % BLD_MATS.length];
+    }
 
     function pushQuad(pos, col, a, b, width, color) {
         var dx = b.x - a.x, dz = b.z - a.z;
@@ -550,11 +588,23 @@
         }
     }
 
-    function addBuilding(group, pts, tags) {
-        var levels = parseInt(tags['building:levels'], 10);
-        var h = parseFloat(tags.height);
-        if (isNaN(h) || h <= 0) h = (!isNaN(levels) && levels > 0 ? levels : 3) * 3;
-        h = Math.max(3, Math.min(90, h));
+    function parseHeightTag(v) {
+        if (v === undefined || v === null || v === '') return NaN;
+        var s = String(v).toLowerCase();
+        var n = parseFloat(s.replace(',', '.'));
+        if (isNaN(n)) return NaN;
+        if (s.indexOf('ft') >= 0 || s.indexOf('feet') >= 0 || s.indexOf("'") >= 0) n *= 0.3048; // OSM đôi khi ghi feet
+        return n;
+    }
+
+    function addBuilding(group, pts, tags, seedId) {
+        // Chiều cao: ưu tiên thẻ height (mét), không có thì building:levels × 3, mặc định ~8m; kẹp 3–60m
+        var h = parseHeightTag(tags.height);
+        if (isNaN(h) || h <= 0) {
+            var levels = parseFloat(tags['building:levels']);
+            h = (!isNaN(levels) && levels > 0) ? Math.round(levels) * 3 : 8;
+        }
+        h = Math.max(3, Math.min(60, h));
         try {
             var shape = new THREE.Shape();
             for (var i = 0; i < pts.length; i++) {
@@ -564,10 +614,12 @@
             shape.closePath();
             var geo = new THREE.ExtrudeGeometry(shape, { depth: h, bevelEnabled: false });
             geo.rotateX(-Math.PI / 2);
+            // Màu chọn theo id của way (ổn định qua các lần tải lại); thiếu id thì dùng tọa độ điểm đầu
+            var seed = (seedId !== undefined && seedId !== null) ? String(seedId)
+                : (Math.round(pts[0].x * 10) + ':' + Math.round(pts[0].z * 10));
             var hash = 0;
-            var seed = Math.round(pts[0].x * 10) + ':' + Math.round(pts[0].z * 10);
             for (var j = 0; j < seed.length; j++) hash = (hash * 31 + seed.charCodeAt(j)) >>> 0;
-            var mesh = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ color: BLD_COLORS[hash % BLD_COLORS.length] }));
+            var mesh = new THREE.Mesh(geo, buildingMats(hash));
             group.add(mesh);
         } catch (e) { /* footprint lỗi hình học — bỏ qua tòa này */ }
     }
@@ -628,9 +680,274 @@
         group.add(lb);
     }
 
+    // ================= NỀN ẢNH VỆ TINH (Esri World Imagery, zoom 18) =================
+    // Toán slippy-map chuẩn: pixel toàn cầu của 1 điểm ở zoom 18 (gốc ở góc Tây-Bắc thế giới, y tăng về phía Nam).
+    function satPxX(lng) { return (lng + 180) / 360 * SAT_SCALE; }
+    function satPxY(lat) {
+        var r = lat * Math.PI / 180;
+        return (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * SAT_SCALE;
+    }
+    // Mặt đất vệ tinh cho 1 ô: khâu mọi tile z18 phủ đúng biên lat/lng của ô lên 1 canvas
+    // (vẽ tại offset pixel chính xác của từng tile), lấy canvas làm texture cho mặt phẳng
+    // có kích thước + vị trí đúng biên ô trong tọa độ mét cục bộ -> góc ô khớp góc canvas theo cấu trúc.
+    function addSatelliteGround(group, ilat, ilng) {
+        var latMin = ilat * CELL_DEG, latMax = latMin + CELL_DEG;
+        var lngMin = ilng * CELL_DEG, lngMax = lngMin + CELL_DEG;
+        var px0 = satPxX(lngMin), px1 = satPxX(lngMax);
+        var py0 = satPxY(latMax), py1 = satPxY(latMin); // py0 = cạnh Bắc (pixel y nhỏ hơn)
+        var ox = Math.floor(px0), oy = Math.floor(py0);
+        var W = Math.max(1, Math.ceil(px1) - ox), H = Math.max(1, Math.ceil(py1) - oy);
+        var cv = document.createElement('canvas');
+        cv.width = W; cv.height = H;
+        var ctx = cv.getContext('2d');
+        ctx.fillStyle = '#8a9a7b'; // nền phẳng dự phòng: vùng nào tile chưa về / tile lỗi vẫn có đất, không thủng lỗ
+        ctx.fillRect(0, 0, W, H);
+        var tex = new THREE.CanvasTexture(cv);
+        var mat = new THREE.MeshBasicMaterial({ map: tex });
+        var plane = new THREE.Mesh(
+            new THREE.PlaneGeometry(CELL_DEG * mPerDegLng(origin.lat), CELL_DEG * M_PER_DEG_LAT), mat);
+        plane.rotation.x = -Math.PI / 2; // mặt phẳng ngửa lên; cạnh v=1 (đầu canvas) hướng về phía Bắc (-z)
+        var c = toLocal((latMin + latMax) / 2, (lngMin + lngMax) / 2);
+        plane.position.set(c.x, 0.02, c.z);
+        group.add(plane);
+        var dead = false, taintChecked = false;
+        var tx0 = Math.floor(ox / 256), tx1 = Math.floor((ox + W - 1) / 256);
+        var ty0 = Math.floor(oy / 256), ty1 = Math.floor((oy + H - 1) / 256);
+        for (var ty = ty0; ty <= ty1; ty++) {
+            for (var tx = tx0; tx <= tx1; tx++) {
+                (function (tx, ty) {
+                    var img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = function () {
+                        if (dead) return;
+                        try { ctx.drawImage(img, tx * 256 - ox, ty * 256 - oy); } catch (e) { return; }
+                        if (!taintChecked) {
+                            taintChecked = true;
+                            try { ctx.getImageData(0, 0, 1, 1); }
+                            catch (e) {
+                                // Canvas bị "tainted" (CORS không cho đọc) -> bỏ texture, mặt phẳng về màu trơn
+                                dead = true;
+                                mat.map = null;
+                                mat.color.set(0x8a9a7b);
+                                mat.needsUpdate = true;
+                                return;
+                            }
+                        }
+                        tex.needsUpdate = true;
+                    };
+                    img.onerror = function () { /* tile lỗi: giữ nền màu ở vùng đó */ };
+                    img.src = ESRI_TILE.replace('{y}', ty).replace('{x}', tx);
+                })(tx, ty);
+            }
+        }
+    }
+
+    // ================= NHÂN VẬT 3D LOW-POLY (thay sprite 2D) =================
+    function lamMat(hex) { return new THREE.MeshLambertMaterial({ color: new THREE.Color(hex) }); }
+
+    function buildPhapBao(kind) {
+        var g = new THREE.Group();
+        if (kind === 'kiem') {
+            var blade = new THREE.Mesh(new THREE.BoxGeometry(0.16, 1.35, 0.045), lamMat('#d7dde6'));
+            blade.position.y = -0.82; g.add(blade);
+            var guard = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.09, 0.16), lamMat('#f59e0b'));
+            guard.position.y = -0.12; g.add(guard);
+            var handle = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.30, 8), lamMat('#7c4a21'));
+            handle.position.y = 0.06; g.add(handle);
+            g.rotation.x = 0.12;
+        } else if (kind === 'quat') {
+            var fan = new THREE.Mesh(new THREE.CircleGeometry(0.85, 14, Math.PI * 0.22, Math.PI * 0.56),
+                new THREE.MeshLambertMaterial({ color: 0xfbbf24, side: THREE.DoubleSide }));
+            fan.position.set(0, -0.15, 0.10);
+            fan.rotation.x = -0.35;
+            g.add(fan);
+            var stick = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.5, 6), lamMat('#7c4a21'));
+            stick.position.y = -0.1;
+            g.add(stick);
+        } else if (kind === 'ho_lo') {
+            var b1 = new THREE.Mesh(new THREE.SphereGeometry(0.30, 12, 10), lamMat('#d97706'));
+            b1.position.y = -0.30; g.add(b1);
+            var b2 = new THREE.Mesh(new THREE.SphereGeometry(0.21, 12, 10), lamMat('#f59e0b'));
+            b2.position.y = 0.05; g.add(b2);
+        } else if (kind === 'sach') {
+            var cover = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.68, 0.13), lamMat('#2563eb'));
+            cover.position.set(0, -0.25, 0.12); cover.rotation.x = -0.3; g.add(cover);
+            var pages = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.60, 0.15), lamMat('#fef9ec'));
+            pages.position.set(0, -0.25, 0.125); pages.rotation.x = -0.3; g.add(pages);
+        } else if (kind === 'truong') {
+            var staff = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 1.9, 8), lamMat('#7c4a21'));
+            staff.position.y = 0.35; g.add(staff);
+            var orb = new THREE.Mesh(new THREE.SphereGeometry(0.21, 12, 10), lamMat('#a78bfa'));
+            orb.position.y = 1.42; g.add(orb);
+        } else {
+            return null; // 'khong' hoặc lạ: tay không
+        }
+        return g;
+    }
+
+    function buildHair(headG, mat) {
+        var toc = chibiCfg.toc;
+        if (toc === 5) { // gần như trọc: chỉ 1 lớp tóc rất mỏng trên đỉnh
+            var thin = new THREE.Mesh(new THREE.SphereGeometry(1.12, 20, 10, 0, Math.PI * 2, 0, 0.95), mat);
+            thin.scale.y = 0.6;
+            thin.position.y = 0.30;
+            headG.add(thin);
+            return;
+        }
+        var cap = new THREE.Mesh(new THREE.SphereGeometry(1.15, 20, 12, 0, Math.PI * 2, 0, 1.85), mat);
+        cap.scale.y = 0.94;
+        cap.position.set(0, 0.10, -0.05);
+        headG.add(cap);
+        if (toc === 1) { // tóc dài: thêm tấm tóc sau lưng xuống tới vai
+            var back = new THREE.Mesh(new THREE.BoxGeometry(1.55, 1.75, 0.34), mat);
+            back.position.set(0, -0.75, -0.88);
+            back.rotation.x = 0.06;
+            headG.add(back);
+        } else if (toc === 2) { // búi củ tỏi trên đỉnh
+            var bun = new THREE.Mesh(new THREE.SphereGeometry(0.42, 12, 10), mat);
+            bun.position.set(0, 1.12, -0.05);
+            headG.add(bun);
+        } else if (toc === 3) { // đuôi ngựa sau gáy, hơi chếch xuống
+            var tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.32, 1.0, 3, 8), mat);
+            tail.position.set(0, -0.25, -1.02);
+            tail.rotation.x = 0.55;
+            headG.add(tail);
+        } else if (toc === 4) { // 2 búi 2 bên trên
+            [-1, 1].forEach(function (sd) {
+                var b = new THREE.Mesh(new THREE.SphereGeometry(0.40, 12, 10), mat);
+                b.position.set(0.80 * sd, 0.72, 0);
+                headG.add(b);
+            });
+        }
+        // toc === 0: chỉ đội cap ngắn là đủ
+    }
+
+    // Dựng nhân vật chibi 3D (~5 đơn vị cao) từ cấu hình chibiCfg (toc / mau_toc / ao / phap_bao).
+    // Trả về { group, parts } — group neo tại điểm đất (chân ở y=0), parts để chạy hoạt cảnh đi bộ.
+    function buildAvatar() {
+        var hairHex = (HAIR_COLORS[chibiCfg.mau_toc] || HAIR_COLORS[0]).hex;
+        var robeHex = (ROBE_COLORS[chibiCfg.ao] || ROBE_COLORS[0]).hex;
+        var skinMat = lamMat(SKIN);
+        var hairMat = lamMat(hairHex);
+        var robeMat = lamMat(robeHex);
+        var robeDarkMat = lamMat(shade(robeHex === '#e8ecf3' ? '#c8cfdb' : robeHex, 0.7));
+        var darkMat = lamMat('#374151');
+
+        var group = new THREE.Group();
+        // Bóng mềm dưới chân cho nhân vật "đứng" vững trên nền ảnh vệ tinh
+        var blob = new THREE.Mesh(new THREE.CircleGeometry(1.5, 24),
+            new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.25, depthWrite: false }));
+        blob.rotation.x = -Math.PI / 2;
+        blob.position.y = 0.14;
+        group.add(blob);
+
+        var tilt = new THREE.Group(); // nhóm nghiêng người + nhún khi đi (bóng ở ngoài nhóm này nên không nhún theo)
+        group.add(tilt);
+
+        function leg(side) {
+            var pivot = new THREE.Group();
+            pivot.position.set(0.28 * side, 0.98, 0);
+            var legMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.155, 0.17, 0.66, 8), darkMat);
+            legMesh.position.y = -0.33;
+            pivot.add(legMesh);
+            var shoe = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.16, 0.46), lamMat('#4a3220'));
+            shoe.position.set(0, -0.68, 0.06);
+            pivot.add(shoe);
+            tilt.add(pivot);
+            return pivot;
+        }
+        var legL = leg(-1), legR = leg(1);
+
+        var robe = new THREE.Mesh(new THREE.CylinderGeometry(0.60, 1.04, 1.82, 12), robeMat);
+        robe.position.y = 1.74;
+        tilt.add(robe);
+        var belt = new THREE.Mesh(new THREE.CylinderGeometry(0.665, 0.70, 0.24, 12), lamMat('#b45309'));
+        belt.position.y = 2.02;
+        tilt.add(belt);
+        var collar = new THREE.Mesh(new THREE.CylinderGeometry(0.30, 0.44, 0.30, 10), robeDarkMat);
+        collar.position.y = 2.72;
+        tilt.add(collar);
+
+        function arm(side) {
+            var pivot = new THREE.Group();
+            pivot.position.set(0.70 * side, 2.52, 0);
+            pivot.rotation.z = 0.22 * side; // tay xuôi hơi xòe ra ngoài
+            var aMesh = new THREE.Mesh(new THREE.CapsuleGeometry(0.17, 0.60, 3, 8), robeMat);
+            aMesh.position.y = -0.48;
+            pivot.add(aMesh);
+            var hand = new THREE.Mesh(new THREE.SphereGeometry(0.16, 10, 8), skinMat);
+            hand.position.y = -1.0;
+            pivot.add(hand);
+            tilt.add(pivot);
+            return pivot;
+        }
+        var armL = arm(-1), armR = arm(1);
+
+        var item = buildPhapBao(chibiCfg.phap_bao);
+        if (item) {
+            item.position.set(0, -1.05, 0.08); // gắn ở bàn tay phải
+            armR.add(item);
+        }
+
+        var headG = new THREE.Group();
+        headG.position.y = 3.66;
+        tilt.add(headG);
+        headG.add(new THREE.Mesh(new THREE.SphereGeometry(1.08, 22, 18), skinMat));
+        var eyeGeo = new THREE.SphereGeometry(0.105, 8, 8);
+        var eyeMat = lamMat('#26221f');
+        [-1, 1].forEach(function (sd) {
+            var eye = new THREE.Mesh(eyeGeo, eyeMat);
+            eye.scale.set(1, 1.25, 0.55);
+            eye.position.set(0.37 * sd, 0.06, 0.99);
+            headG.add(eye);
+            var cheek = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 8),
+                new THREE.MeshLambertMaterial({ color: 0xff9d9d, transparent: true, opacity: 0.8 }));
+            cheek.scale.set(1, 0.8, 0.4);
+            cheek.position.set(0.63 * sd, -0.16, 0.90);
+            headG.add(cheek);
+        });
+        buildHair(headG, hairMat);
+
+        return { group: group, parts: { tilt: tilt, armL: armL, armR: armR, legL: legL, legR: legR } };
+    }
+
+    // Hoạt cảnh nhân vật: pha đi bộ tiến theo QUÃNG ĐƯỜNG thật đã đi; tay/chân vung ngược pha;
+    // người nhún + hơi đổ về trước khi đi, thở nhẹ khi đứng yên; hướng mặt lerp mượt theo hướng di chuyển.
+    var avPhase = 0, avSwing = 0, avLean = 0, avHeading = 0;
+    function angDelta(from, to) {
+        var d = (to - from) % (Math.PI * 2);
+        if (d > Math.PI) d -= Math.PI * 2;
+        if (d < -Math.PI) d += Math.PI * 2;
+        return d;
+    }
+    function updateAvatarAnim(stepDist, moving, t, dx, dz) {
+        var P = three && three.avParts;
+        if (!P) return;
+        if (moving && (dx || dz)) {
+            avHeading += angDelta(avHeading, Math.atan2(dx, dz)) * 0.16;
+        }
+        three.avatar.rotation.y = avHeading;
+        if (stepDist > 0) avPhase += stepDist * 1.7;
+        avSwing += ((moving ? 1 : 0) - avSwing) * 0.18;
+        var s = Math.sin(avPhase);
+        P.armL.rotation.x = s * 0.55 * avSwing;
+        P.armR.rotation.x = -s * 0.5 * avSwing;
+        P.legL.rotation.x = -s * 0.55 * avSwing;
+        P.legR.rotation.x = s * 0.55 * avSwing;
+        avLean += ((moving ? 0.10 : 0) - avLean) * 0.08;
+        P.tilt.rotation.x = avLean;
+        P.tilt.position.y = moving ? Math.abs(Math.cos(avPhase)) * 0.12 * avSwing
+                                   : Math.sin(t * 0.0022) * 0.04;
+    }
+
     function buildCell(key, json) {
         if (!three || !json || !json.elements) return;
         var group = new THREE.Group();
+        if (MAP_STYLE === 'satellite') {
+            var kp = key.split(':');
+            var ilat = parseInt(kp[0], 10), ilng = parseInt(kp[1], 10);
+            if (isFinite(ilat) && isFinite(ilng)) addSatelliteGround(group, ilat, ilng);
+        }
         var roadPos = [], roadCol = [];
         var cTmp = new THREE.Color();
         json.elements.forEach(function (elm) {
@@ -640,9 +957,9 @@
                 var pts = [];
                 for (var i = 0; i < elm.geometry.length; i++) pts.push(toLocal(elm.geometry[i].lat, elm.geometry[i].lon));
                 if (tags.building) {
-                    addBuilding(group, pts, tags);
+                    addBuilding(group, pts, tags, elm.id);
                 } else if (tags.highway) {
-                    var st = ROAD_STYLE[tags.highway] || [4, '#dfe6ee'];
+                    var st = ROAD_STYLE[tags.highway] || [5, '#dfe6ee'];
                     cTmp.set(st[1]);
                     for (var k = 0; k + 1 < pts.length; k++) pushQuad(roadPos, roadCol, pts[k], pts[k + 1], st[0], cTmp);
                 }
@@ -661,6 +978,7 @@
             geo.setAttribute('color', new THREE.Float32BufferAttribute(roadCol, 3));
             var mesh = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide }));
             mesh.position.y = 0.12;
+            if (MAP_STYLE === 'satellite') mesh.visible = false; // nền vệ tinh đã có đường thật trong ảnh — ẩn đường vẽ để khỏi in đúp
             group.add(mesh);
         }
         three.scene.add(group);
@@ -812,23 +1130,6 @@
         ensureCell(p.lat, p.lng, true);
     }
 
-    function setChibiTexture() {
-        if (!three) return;
-        var img = new Image();
-        img.onload = function () {
-            var cv = document.createElement('canvas');
-            cv.width = 168; cv.height = 196;
-            var ctx = cv.getContext('2d');
-            ctx.drawImage(img, 0, 0, 168, 196);
-            var tex = new THREE.CanvasTexture(cv);
-            three.avatar.material.map = tex;
-            three.avatar.material.needsUpdate = true;
-            three.avatar.visible = true;
-            three.ring.visible = true;
-        };
-        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(chibiSVG(chibiCfg, 168));
-    }
-
     function placeHomeMarker() {
         if (!three || !origin || !home) return;
         if (homeGroup) { three.scene.remove(homeGroup); homeGroup = null; }
@@ -880,25 +1181,38 @@
         var dx = three.target.x - a.position.x, dz = three.target.z - a.position.z;
         var dist = Math.sqrt(dx * dx + dz * dz);
         var moving = dist > 0.4;
+        var stepDone = 0;
         if (moving) {
-            var step = Math.min(dist, 0.55);
-            a.position.x += dx / dist * step;
-            a.position.z += dz / dist * step;
-            walkPhase += 0.25;
+            stepDone = Math.min(dist, 0.55);
+            a.position.x += dx / dist * stepDone;
+            a.position.z += dz / dist * stepDone;
         }
-        a.position.y = 3.8 + (moving ? Math.abs(Math.sin(walkPhase)) * 0.35 : 0);
+        updateAvatarAnim(stepDone, moving, t || 0, dx, dz);
         three.ring.position.x = a.position.x;
         three.ring.position.z = a.position.z;
         var s = 1 + Math.sin((t || 0) / 420) * 0.08;
         three.ring.scale.set(s, s, 1);
+        // ===== Camera: cầu quanh điểm đích (vị trí nhân vật, lerp mượt như cũ) =====
         if (!three.camInit) {
-            three.camera.position.set(a.position.x, 58, a.position.z + 44);
+            three.camTgt.set(a.position.x, 2, a.position.z);
             three.camInit = true;
         }
-        three.camera.position.x += (a.position.x - three.camera.position.x) * 0.06;
-        three.camera.position.y += (58 - three.camera.position.y) * 0.06;
-        three.camera.position.z += (a.position.z + 44 - three.camera.position.z) * 0.06;
-        three.camera.lookAt(a.position.x, 2, a.position.z);
+        three.camTgt.x += (a.position.x - three.camTgt.x) * 0.09;
+        three.camTgt.z += (a.position.z - three.camTgt.z) * 0.09;
+        if (three.camAuto) { // chưa bị chạm vào: eases về khung mặc định CAM_H/CAM_BACK như bản trước
+            three.camAz += angDelta(three.camAz, 0) * 0.05;
+            three.camEl += (CAM_DEF_EL - three.camEl) * 0.05;
+            three.camDist += (CAM_DEF_DIST - three.camDist) * 0.05;
+        }
+        var camCe = Math.cos(three.camEl);
+        three.camera.position.set(
+            three.camTgt.x + three.camDist * camCe * Math.sin(three.camAz),
+            three.camTgt.y + three.camDist * Math.sin(three.camEl),
+            three.camTgt.z + three.camDist * camCe * Math.cos(three.camAz));
+        three.camera.lookAt(
+            three.camTgt.x - Math.sin(three.camAz) * CAM_AHEAD,
+            three.camTgt.y,
+            three.camTgt.z - Math.cos(three.camAz) * CAM_AHEAD);
         three.renderer.render(three.scene, three.camera);
         if ((t || 0) - uiLast > 600) {
             uiLast = t || 0;
@@ -924,9 +1238,9 @@
         if (hint) hint.style.display = 'none';
         var scene = new THREE.Scene();
         scene.background = new THREE.Color(0xaebfd2);
-        scene.fog = new THREE.Fog(0xaebfd2, 280, 950);
-        var camera = new THREE.PerspectiveCamera(55, vp.clientWidth / vp.clientHeight, 0.5, 3000);
-        camera.position.set(0, 58, 44);
+        scene.fog = new THREE.Fog(0xaebfd2, 420, 1500);
+        var camera = new THREE.PerspectiveCamera(58, vp.clientWidth / vp.clientHeight, 0.5, 3000);
+        camera.position.set(0, CAM_H, CAM_BACK);
         scene.add(new THREE.AmbientLight(0xffffff, 0.9));
         var sun = new THREE.DirectionalLight(0xfff2cc, 0.75);
         sun.position.set(120, 220, 60);
@@ -938,27 +1252,67 @@
         ground.rotation.x = -Math.PI / 2;
         ground.position.y = -0.05;
         scene.add(ground);
-        var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ transparent: true }));
-        sprite.scale.set(6.4, 7.5, 1);
-        sprite.position.set(0, 3.8, 0);
-        sprite.visible = false;
-        scene.add(sprite);
+        var avatarBuilt = buildAvatar();
+        scene.add(avatarBuilt.group);
         var ring = new THREE.Mesh(
-            new THREE.RingGeometry(2.3, 3.1, 40),
-            new THREE.MeshBasicMaterial({ color: 0xffc93c, transparent: true, opacity: 0.85, side: THREE.DoubleSide })
+            new THREE.RingGeometry(3.2, 4.4, 40),
+            new THREE.MeshBasicMaterial({ color: 0xffc93c, transparent: true, opacity: 0.9, side: THREE.DoubleSide })
         );
         ring.rotation.x = -Math.PI / 2;
         ring.position.y = 0.18;
-        ring.visible = false;
         scene.add(ring);
         three = {
             scene: scene, camera: camera, renderer: renderer,
-            avatar: sprite, ring: ring,
-            target: { x: 0, z: 0 }, cells: {}, camInit: false
+            avatar: avatarBuilt.group, avParts: avatarBuilt.parts, ring: ring,
+            target: { x: 0, z: 0 }, cells: {}, camInit: false,
+            // Rig camera cầu quanh nhân vật: phương vị / góc nâng / khoảng cách + cờ tự động bám
+            camTgt: new THREE.Vector3(0, 2, 0), camAz: 0, camEl: CAM_DEF_EL,
+            camDist: CAM_DEF_DIST, camAuto: true
         };
-        setChibiTexture();
         placeHomeMarker();
         window.addEventListener('resize', onResize);
+        // Ghi công nguồn ảnh: chế độ vector thì chỉ còn dữ liệu OSM
+        var atEl = el('map-attrib');
+        if (atEl && MAP_STYLE !== 'satellite') atEl.textContent = 'Dữ liệu bản đồ © OpenStreetMap';
+        // ===== Điều khiển camera bằng tay (Pointer Events: chạm + chuột) =====
+        // Chỉ gắn trên canvas nên không đụng các nút/panel nổi; chạm vào là chuyển sang chế độ tay (hết tự bám).
+        var cv = renderer.domElement;
+        cv.style.touchAction = 'none';
+        var camPointers = {};
+        var pinchDist = 0;
+        function pointerList() { return Object.keys(camPointers).map(function (k) { return camPointers[k]; }); }
+        cv.addEventListener('pointerdown', function (e) {
+            camPointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+            try { cv.setPointerCapture(e.pointerId); } catch (err) {}
+            three.camAuto = false;
+            var ps = pointerList();
+            if (ps.length === 2) pinchDist = Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y);
+        });
+        cv.addEventListener('pointermove', function (e) {
+            var p = camPointers[e.pointerId];
+            if (!p) return;
+            var dx = e.clientX - p.x, dy = e.clientY - p.y;
+            p.x = e.clientX; p.y = e.clientY;
+            var ps = pointerList();
+            if (ps.length === 1) {
+                three.camAz -= dx * 0.0055; // vuốt ngang: xoay quanh nhân vật
+                three.camEl = Math.max(CAM_EL_MIN, Math.min(CAM_EL_MAX, three.camEl + dy * 0.004)); // kéo dọc: nghiêng
+            } else if (ps.length === 2) {
+                var d2 = Math.hypot(ps[0].x - ps[1].x, ps[0].y - ps[1].y);
+                if (pinchDist > 0 && d2 > 0) {
+                    three.camDist = Math.max(CAM_DIST_MIN, Math.min(CAM_DIST_MAX, three.camDist * pinchDist / d2));
+                }
+                pinchDist = d2;
+            }
+        });
+        function camPointerEnd(e) { delete camPointers[e.pointerId]; pinchDist = 0; }
+        cv.addEventListener('pointerup', camPointerEnd);
+        cv.addEventListener('pointercancel', camPointerEnd);
+        cv.addEventListener('wheel', function (e) { // chuột máy tính: lăn = zoom
+            e.preventDefault();
+            three.camAuto = false;
+            three.camDist = Math.max(CAM_DIST_MIN, Math.min(CAM_DIST_MAX, three.camDist * (1 + e.deltaY * 0.001)));
+        }, { passive: false });
         requestAnimationFrame(tick);
         return true;
     }
@@ -972,7 +1326,7 @@
         var acc = (pos.coords.accuracy == null ? null : Math.round(pos.coords.accuracy));
         if (!origin) {
             origin = { lat: lat, lng: lng };
-            three.avatar.position.set(0, 3.8, 0);
+            three.avatar.position.set(0, 0, 0);
             three.target = { x: 0, z: 0 };
             placeHomeMarker();
         }
@@ -1086,6 +1440,8 @@
             });
         }
         el('btn-map-retry').addEventListener('click', retryMap);
+        var camResetBtn = el('ov-cam-reset');
+        if (camResetBtn) camResetBtn.addEventListener('click', function () { if (three) three.camAuto = true; });
         // Bản test hồi Thể Lực nhanh để dễ kiểm tra: +1 mỗi 30 giây (bản thật: +1 mỗi 5 phút)
         setInterval(function () {
             if (state.theLuc < state.theLucMax) {
