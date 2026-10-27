@@ -29,7 +29,7 @@
     .btn-amber { background: #d97706; } .btn-amber:hover { background: #f59e0b; }
     .btn-violet { background: #6d28d9; } .btn-violet:hover { background: #7c3aed; }
     .btn-slate { background: #475569; } .btn-slate:hover { background: #64748b; }
-    #g3-viewport { position: relative; width: 100%; height: 62vh; min-height: 340px; border-radius: 14px; overflow: hidden; border: 2px solid #7dd3fc; background: #9fc7e8; margin-top: 10px; }
+    #g3-viewport { position: relative; width: 100%; height: 78vh; min-height: 420px; border-radius: 14px; overflow: hidden; border: 2px solid #7dd3fc; background: #aebfd2; margin-top: 10px; }
     #g3-vp-hint { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; font-weight: 700; color: #334155; font-size: 14px; padding: 0 24px; }
     #g3-toast { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); background: #f59e0b; color: #111827; font-size: 13.5px; font-weight: 900; padding: 7px 16px; border-radius: 999px; box-shadow: 0 4px 14px rgba(0,0,0,.25); opacity: 0; transition: opacity .5s; pointer-events: none; white-space: nowrap; max-width: 94%; overflow: hidden; text-overflow: ellipsis; }
     .zone-now { margin-top: 10px; font-size: 14px; font-weight: 800; background: #ecfdf5; border: 1px solid #6ee7b7; color: #065f46; border-radius: 12px; padding: 9px 12px; }
@@ -39,7 +39,34 @@
     .legend td { padding: 4px 6px; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
     .legend td.d { text-align: right; font-weight: 800; color: #b45309; white-space: nowrap; }
     .small { font-size: 11.5px; color: #64748b; line-height: 1.5; }
-    .link-danger { background: none; box-shadow: none; color: #b91c1c; font-size: 12.5px; padding: 4px 6px; text-decoration: underline; }
+    .link-danger { background: none; box-shadow: none; color: #fca5a5; font-size: 12.5px; padding: 4px 6px; text-decoration: underline; }
+    /* ===== Bố cục kiểu Pokémon GO: sân khấu bản đồ toàn cảnh + lớp phủ ===== */
+    #g3-stage { position: relative; margin-top: 10px; }
+    #g3-stage #g3-viewport { margin-top: 0; }
+    #map-status-bar { position: absolute; top: 0; left: 0; right: 0; z-index: 6; display: flex; align-items: center; gap: 8px; background: rgba(15,23,42,.82); color: #e2e8f0; font-size: 12px; font-weight: 700; padding: 5px 8px; border-radius: 12px 12px 0 0; }
+    #map-status { flex: 1; line-height: 1.35; }
+    #btn-map-retry { margin-left: auto; flex: none; font-size: 11.5px; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: #0369a1; box-shadow: none; }
+    #ov-profile { position: absolute; top: 34px; left: 8px; z-index: 5; display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,.92); border-radius: 999px; padding: 4px 12px 4px 4px; box-shadow: 0 3px 10px rgba(0,0,0,.25); max-width: 76%; color: #1e293b; }
+    #ov-chibi { width: 42px; height: 49px; border-radius: 50%; background: #e0f2fe; flex: none; }
+    .ov-prof-main { min-width: 0; }
+    .ov-prof-line { display: flex; gap: 10px; align-items: baseline; font-size: 11.5px; font-weight: 800; white-space: nowrap; }
+    #ov-level { color: #b45309; }
+    #g3-stage #g3-exp { color: #475569; font-weight: 700; white-space: nowrap; }
+    .ov-tl-bg { width: 130px; max-width: 34vw; height: 9px; background: #e2e8f0; border: 1px solid #cbd5e1; border-radius: 999px; overflow: hidden; margin: 2px 0; }
+    #ov-tkc { position: absolute; top: 34px; right: 8px; z-index: 5; border-radius: 999px; background: #475569; padding: 10px 14px; font-size: 13px; }
+    #ov-zone { position: absolute; top: 102px; left: 8px; z-index: 4; background: rgba(236,253,245,.94); border: 1px solid #6ee7b7; color: #065f46; font-size: 12px; font-weight: 800; border-radius: 999px; padding: 4px 10px; max-width: 72%; box-shadow: 0 2px 8px rgba(0,0,0,.15); }
+    #g3-stage #g3-status { position: absolute; top: 140px; left: 50%; transform: translateX(-50%); z-index: 5; width: max-content; max-width: 94%; margin: 0; background: rgba(15,23,42,.78); color: #fde68a; padding: 6px 14px; border-radius: 14px; text-align: center; box-shadow: 0 3px 10px rgba(0,0,0,.2); }
+    #ov-controls { position: absolute; left: 8px; bottom: 10px; z-index: 5; display: flex; flex-direction: column; gap: 6px; }
+    #ov-controls button { padding: 8px 12px; font-size: 12.5px; border-radius: 999px; }
+    #ov-home { position: absolute; right: 8px; bottom: 10px; z-index: 5; border-radius: 999px; background: #d97706; padding: 11px 15px; font-size: 13px; max-width: 58%; }
+    #ov-menu { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 5; width: 58px; height: 58px; border-radius: 50%; background: #ffffff; color: #b91c1c; font-size: 25px; border: 4px solid #b91c1c; padding: 0; line-height: 1; }
+    .ov-sheet { position: absolute; left: 50%; bottom: 86px; transform: translateX(-50%); z-index: 9; width: min(93%, 430px); background: #0f172a; color: #f1f5f9; border-radius: 16px; padding: 13px 14px; box-shadow: 0 12px 32px rgba(0,0,0,.4); }
+    .ov-sheet[hidden] { display: none; }
+    .ov-sheet-title { font-size: 15.5px; font-weight: 900; color: #fbbf24; margin-bottom: 6px; }
+    .ov-sheet-text { font-size: 13px; line-height: 1.5; margin: 4px 0; }
+    .ov-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 2px; border-bottom: 1px solid rgba(255,255,255,.13); font-weight: 800; font-size: 14.5px; }
+    .ov-tag { color: #fbbf24; font-size: 11.5px; font-weight: 700; }
+    .ov-close { margin-top: 11px; width: 100%; background: #334155; padding: 9px; }
     #g3-home-hint { font-size: 12.5px; color: #fca5a5; margin-top: 6px; font-weight: 700; }
     .sect-title { font-size: 15px; font-weight: 900; color: #b45309; margin: 14px 0 4px; }
 </style>
@@ -59,40 +86,74 @@
             <span class="small">Lưu ý bản test: Thể Lực hồi nhanh +1 mỗi 30 giây cho dễ kiểm tra (bản thật: +1 mỗi 5 phút + ngồi tu luyện nghe truyện). App phải đang mở khi đi — đóng trang/khóa máy lâu thì GPS ngừng (giới hạn trình duyệt). Vị trí chỉ xử lý ngay trên máy, trang test không gửi vị trí đi đâu cả.</span>
         </div>
 
-        <div class="hud">
-            <div class="hud-row">
-                <div class="tl-wrap">
-                    <span style="white-space:nowrap">⚡ Thể Lực</span>
-                    <div class="tl-bar-bg"><div id="g3-tl-bar"></div></div>
-                    <span id="g3-tl-text" style="white-space:nowrap">… / …</span>
+        <div id="g3-stage">
+            <div id="g3-viewport">
+                <p id="g3-vp-hint">🗺️ Bản đồ 3D sẽ hiện ở đây<br>sau khi bật GPS hoặc Xem thử.</p>
+                <div id="g3-toast">+0 EXP ⭐</div>
+            </div>
+
+            <div id="map-status-bar">
+                <span id="map-status">🗺️ Bản đồ: chờ bật GPS / Xem thử…</span>
+                <button id="btn-map-retry" type="button">↻ Tải lại bản đồ</button>
+            </div>
+
+            <div id="ov-profile">
+                <img id="ov-chibi" alt="Nhân vật">
+                <div class="ov-prof-main">
+                    <div class="ov-prof-line"><span id="ov-level">Cấp HĐ 1</span><span id="g3-exp">⭐ …</span></div>
+                    <div class="ov-tl-bg"><div id="g3-tl-bar"></div></div>
+                    <div class="ov-prof-line"><span>⚡ <span id="g3-tl-text">… / …</span></span><span id="g3-today">Hôm nay: … m • +… EXP</span></div>
                 </div>
-                <span id="g3-today" style="white-space:nowrap">Hôm nay: … m • +… EXP</span>
-                <span id="g3-exp" style="white-space:nowrap">⭐ …</span>
             </div>
-            <div class="hud-sub">
-                <span id="g3-home">🏠 Động Phủ: chưa đặt</span>
-                <span id="g3-zone">📍 Khu hiện tại: —</span>
-            </div>
+
+            <button id="ov-tkc" type="button">📖 Tàng Kinh Các</button>
+
+            <div id="ov-zone"><span id="g3-zone">📍 Khu hiện tại: —</span></div>
+
             <p id="g3-status">⏳ Bấm “Bật GPS” để bắt đầu, hoặc “Xem thử” để ngắm bản đồ 3D trước.</p>
-            <div id="g3-home-hint">Hãy bấm “Đặt Động Phủ tại đây” khi đang đứng ở nhà.</div>
-            <div class="btns">
+
+            <div id="ov-controls">
                 <button id="g3-btn-start" class="btn-green">📍 Bật GPS</button>
                 <button id="g3-btn-stop" class="btn-red" disabled style="opacity:.45">⏸ Dừng</button>
                 <button id="g3-btn-demo" class="btn-sky">👀 Xem thử (Ga Tokyo)</button>
-                <button id="g3-btn-home" class="btn-amber">🏠 Đặt Động Phủ tại đây</button>
-                <button id="g3-btn-clear-home" class="link-danger">Xóa Động Phủ</button>
             </div>
-            <div class="sect-title" style="color:#fbbf24">🎬 Hành động thử (demo)</div>
-            <div class="btns" style="margin-top:4px">
-                <button id="g3-btn-post" class="btn-violet" disabled style="opacity:.45">📚 Đăng truyện lên Tàng Kinh Các (demo)</button>
-                <button id="g3-btn-pet" class="btn-violet" disabled style="opacity:.45">🐾 Cho sủng thú ăn (demo)</button>
-                <button id="g3-btn-read" class="btn-slate">📖 Mở Tàng Kinh Các — đọc/nghe truyện (demo)</button>
-            </div>
-        </div>
 
-        <div id="g3-viewport">
-            <p id="g3-vp-hint">🗺️ Bản đồ 3D sẽ hiện ở đây<br>sau khi bật GPS hoặc Xem thử.</p>
-            <div id="g3-toast">+0 EXP ⭐</div>
+            <button id="ov-home" type="button"><span id="g3-home">🏠 Động Phủ: chưa đặt</span></button>
+
+            <button id="ov-menu" type="button" aria-label="Menu chính">☰</button>
+
+            <div id="ov-home-panel" class="ov-sheet" hidden>
+                <div class="ov-sheet-title">🏠 Động Phủ</div>
+                <div id="g3-home-hint">Hãy bấm “Đặt Động Phủ tại đây” khi đang đứng ở nhà.</div>
+                <div class="btns">
+                    <button id="g3-btn-home" class="btn-amber">🏠 Đặt Động Phủ tại đây</button>
+                    <button id="g3-btn-clear-home" class="link-danger">Xóa Động Phủ</button>
+                </div>
+                <div class="sect-title" style="color:#fbbf24">🎬 Hành động thử (demo) — chỉ làm được khi ở Động Phủ</div>
+                <div class="btns" style="margin-top:4px">
+                    <button id="g3-btn-post" class="btn-violet" disabled style="opacity:.45">📚 Đăng truyện lên Tàng Kinh Các (demo)</button>
+                    <button id="g3-btn-pet" class="btn-violet" disabled style="opacity:.45">🐾 Cho sủng thú ăn (demo)</button>
+                </div>
+                <button class="ov-close" type="button" data-close="ov-home-panel">Đóng</button>
+            </div>
+
+            <div id="ov-tkc-panel" class="ov-sheet" hidden>
+                <div class="ov-sheet-title">📖 Tàng Kinh Các</div>
+                <p class="ov-sheet-text">Đọc / nghe truyện — mở được ở MỌI nơi, không cần về Động Phủ. (Bản test chỉ minh họa vị trí nút bấm.)</p>
+                <div class="btns">
+                    <button id="g3-btn-read" class="btn-slate">📖 Mở Tàng Kinh Các — đọc/nghe truyện (demo)</button>
+                </div>
+                <button class="ov-close" type="button" data-close="ov-tkc-panel">Đóng</button>
+            </div>
+
+            <div id="ov-menu-sheet" class="ov-sheet" hidden>
+                <div class="ov-sheet-title">📋 Menu Tông Môn</div>
+                <div class="ov-row"><span>🏯 Sảnh Chính</span><span class="ov-tag">(bản chính)</span></div>
+                <div class="ov-row"><span>⚖️ Chợ Đấu Giá</span><span class="ov-tag">(bản chính)</span></div>
+                <div class="ov-row"><span>🛠️ Nghề Phụ Trợ</span><span class="ov-tag">(bản chính)</span></div>
+                <div class="ov-row"><span>🎒 Túi Trữ Vật</span><span class="ov-tag">(bản chính)</span></div>
+                <button class="ov-close" type="button" data-close="ov-menu-sheet">Đóng</button>
+            </div>
         </div>
 
         <details class="legend" open>
@@ -242,6 +303,8 @@
         el('g3-tl-bar').style.width = pct + '%';
         el('g3-today').textContent = 'Hôm nay: ' + fmt(Math.round(state.met)) + ' m • +' + fmt(state.expToday) + ' EXP';
         el('g3-exp').textContent = '⭐ Tổng EXP (mô phỏng): ' + fmt(state.expToday) + ' · Cấp HĐ ' + capHoatDong();
+        var lvEl = el('ov-level');
+        if (lvEl) lvEl.textContent = 'Cấp HĐ ' + capHoatDong();
     }
     function setStatus(t) { el('g3-status').textContent = t; }
     var toastTimer = null;
@@ -466,12 +529,12 @@
     }
 
     var ROAD_STYLE = {
-        motorway: [9, '#f0a35e'], trunk: [9, '#f0a35e'], primary: [8, '#f6c453'],
-        secondary: [6.5, '#f9e08a'], tertiary: [5.5, '#eef2f5'], residential: [5, '#eef2f5'],
-        unclassified: [5, '#e6ebf0'], service: [3.5, '#dde4ea'], footway: [2, '#cbb489'],
-        path: [2, '#cbb489'], pedestrian: [3, '#e8ddc4'], cycleway: [2, '#b9d3a8'], steps: [2, '#cbb489']
+        motorway: [9, '#5b7a99'], trunk: [9, '#5b7a99'], primary: [8, '#54708c'],
+        secondary: [6.5, '#4d637c'], tertiary: [5.5, '#46586e'], residential: [5, '#42536a'],
+        unclassified: [5, '#42536a'], service: [3.5, '#3b4b61'], footway: [2, '#37485e'],
+        path: [2, '#37485e'], pedestrian: [3, '#3f5269'], cycleway: [2, '#3e5c66'], steps: [2, '#37485e']
     };
-    var BLD_COLORS = ['#d9c7a7', '#c7d3e0', '#e2c9c9', '#cfe0c7', '#ddd3ba', '#cdbfd8'];
+    var BLD_COLORS = ['#b9c4cf', '#aebac6', '#c3ccd4', '#a4b2c0', '#bcc7d1', '#9fb0bf'];
 
     function pushQuad(pos, col, a, b, width, color) {
         var dx = b.x - a.x, dz = b.z - a.z;
@@ -605,11 +668,69 @@
         updatePoiPanel();
     }
 
+    // ================= TẢI BẢN ĐỒ (Overpass) =================
+    // Nhiều endpoint dự phòng + timeout phía client + thử lại nhiều vòng.
+    // Ô tải hỏng/trống KHÔNG bao giờ bị đánh dấu "đã tải" hay ghi cache — luôn còn đường tải lại.
+    var OVERPASS_ENDPOINTS = [
+        'https://overpass-api.de/api/interpreter',
+        'https://overpass.kumi.systems/api/interpreter',
+        'https://overpass.nchc.org.tw/api/interpreter',
+        'https://overpass.openstreetmap.fr/api/interpreter'
+    ];
+    var cellCooldownUntil = {}; // key -> mốc ms: tạm dừng tự tải lại sau lần hỏng/trống gần nhất
+    var cellFetchToken = {};    // key -> số hiệu lượt tải (kết quả của lượt cũ không ghi đè lượt mới)
+    var statusCellKey = null;   // ô chứa nhân vật — ô duy nhất được cập nhật dòng trạng thái bản đồ
+
+    function mapStatus(t) {
+        var d = el('map-status');
+        if (d) d.textContent = t;
+    }
+    function countElements(json) {
+        var c = { nha: 0, duong: 0, diem: 0 };
+        if (!json || !json.elements) return c;
+        json.elements.forEach(function (elm) {
+            var tags = elm.tags || {};
+            if (elm.type === 'way' && tags.building) c.nha++;
+            else if (elm.type === 'way' && tags.highway) c.duong++;
+            if (poiTypeOf(tags)) c.diem++;
+        });
+        return c;
+    }
+    function mapLoadedText(c, tuCache) {
+        return '🗺️ Đã tải bản đồ: ' + fmt(c.nha) + ' nhà • ' + fmt(c.duong) + ' đường • ' + fmt(c.diem) + ' điểm khu vực' + (tuCache ? ' (bản đã lưu trên máy)' : '');
+    }
+    function fetchOverpassOnce(url, q) {
+        return new Promise(function (resolve, reject) {
+            var ctrl = ('AbortController' in window) ? new AbortController() : null;
+            var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 25000);
+            fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'data=' + encodeURIComponent(q),
+                signal: ctrl ? ctrl.signal : undefined
+            }).then(function (r) {
+                clearTimeout(timer);
+                if (!r.ok) { reject(new Error('HTTP ' + r.status)); return; }
+                r.json().then(resolve, reject);
+            }).catch(function (e) { clearTimeout(timer); reject(e); });
+        });
+    }
+    function waitMs(ms) { return new Promise(function (res) { setTimeout(res, ms); }); }
+
     function fetchCell(key, clat, clng) {
         var storeKey = 'test_g3_cell_' + key;
+        // Cache trên máy: chỉ dùng khi cache chứa dữ liệu thật (>0 phần tử).
+        // Cache trống/hỏng (có thể do 1 lần mạng lỗi trước đó) thì bỏ qua và tải lại từ mạng.
         try {
             var cached = localStorage.getItem(storeKey);
-            if (cached) { buildCell(key, JSON.parse(cached)); return; }
+            if (cached) {
+                var cj = JSON.parse(cached);
+                if (cj && cj.elements && cj.elements.length > 0) {
+                    buildCell(key, cj);
+                    if (key === statusCellKey) mapStatus(mapLoadedText(countElements(cj), true));
+                    return;
+                }
+            }
         } catch (e) {}
         var half = CELL_DEG * 0.78;
         var bbox = '(' + (clat - half) + ',' + (clng - half) + ',' + (clat + half) + ',' + (clng + half) + ')';
@@ -626,29 +747,69 @@
             'node["tourism"~"zoo|museum"]' + bbox + ';' +
             'way["tourism"~"zoo|museum"]' + bbox + ';' +
             ');out geom;';
-        fetch('https://overpass-api.de/api/interpreter', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'data=' + encodeURIComponent(q)
-        }).then(function (r) { return r.json(); }).then(function (json) {
-            try {
-                var s = JSON.stringify(json);
-                if (s.length < 600000) localStorage.setItem(storeKey, s);
-            } catch (e) {}
-            buildCell(key, json);
-        }).catch(function () {
-            if (three && three.cells[key] === 'loading') delete three.cells[key];
-        });
+        var token = (cellFetchToken[key] || 0) + 1;
+        cellFetchToken[key] = token;
+        function alive() { return cellFetchToken[key] === token && !!three && three.cells[key] === 'loading'; }
+        function attempt(round) {
+            if (!alive()) return;
+            if (key === statusCellKey) mapStatus('🗺️ Đang tải bản đồ khu vực…' + (round > 1 ? ' (thử lại lần ' + round + ')' : ''));
+            var chain = Promise.reject(new Error('start'));
+            OVERPASS_ENDPOINTS.forEach(function (ep) {
+                chain = chain.catch(function () { return fetchOverpassOnce(ep, q); });
+            });
+            chain.then(function (json) {
+                if (!alive()) return;
+                if (!json || !json.elements || json.elements.length === 0) {
+                    // Trả về rỗng: KHÔNG ghi cache, KHÔNG đánh dấu đã tải; nghỉ 60 giây mới tự thử lại.
+                    delete three.cells[key];
+                    cellCooldownUntil[key] = Date.now() + 60000;
+                    if (key === statusCellKey) mapStatus('⚠️ Tải bản đồ về 0 dữ liệu (OpenStreetMap đang bận?) — bấm “↻ Tải lại bản đồ” để thử ngay');
+                    return;
+                }
+                try {
+                    var s = JSON.stringify(json);
+                    if (s.length < 600000) localStorage.setItem(storeKey, s);
+                } catch (e) {}
+                buildCell(key, json);
+                if (key === statusCellKey) mapStatus(mapLoadedText(countElements(json), false));
+            }).catch(function () {
+                if (!alive()) return;
+                if (round < 3) {
+                    waitMs(round === 1 ? 3000 : 6000).then(function () { attempt(round + 1); });
+                } else {
+                    // Hỏng hẳn sau 3 vòng: nhả ô về "chưa tải" để lần di chuyển sau / nút Tải lại còn thử được.
+                    delete three.cells[key];
+                    cellCooldownUntil[key] = Date.now() + 20000;
+                    if (key === statusCellKey) mapStatus('⚠️ Chưa tải được bản đồ (mạng/OpenStreetMap bận) — bấm “↻ Tải lại bản đồ”');
+                }
+            });
+        }
+        attempt(1);
     }
 
-    function ensureCell(lat, lng) {
+    function ensureCell(lat, lng, force) {
         if (!three) return;
         var key = cellKey(lat, lng);
+        statusCellKey = key;
         if (three.cells[key]) return;
+        if (!force && cellCooldownUntil[key] && Date.now() < cellCooldownUntil[key]) return;
         three.cells[key] = 'loading';
         var clat = (Math.floor(lat / CELL_DEG) + 0.5) * CELL_DEG;
         var clng = (Math.floor(lng / CELL_DEG) + 0.5) * CELL_DEG;
         fetchCell(key, clat, clng);
+    }
+
+    function retryMap() {
+        if (!three) { toast('Hãy Bật GPS hoặc Xem thử trước đã'); return; }
+        var p = curLatLng || origin;
+        if (!p) { toast('Chưa có vị trí để tải bản đồ'); return; }
+        var key = cellKey(p.lat, p.lng);
+        cellFetchToken[key] = (cellFetchToken[key] || 0) + 1; // hủy kết quả của lượt tải đang chạy (nếu có)
+        if (three.cells[key] === 'loading') delete three.cells[key];
+        delete cellCooldownUntil[key];
+        try { localStorage.removeItem('test_g3_cell_' + key); } catch (e) {}
+        mapStatus('🗺️ Đang tải lại bản đồ khu vực…');
+        ensureCell(p.lat, p.lng, true);
     }
 
     function setChibiTexture() {
@@ -762,8 +923,8 @@
         var hint = el('g3-vp-hint');
         if (hint) hint.style.display = 'none';
         var scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x9fc7e8);
-        scene.fog = new THREE.Fog(0x9fc7e8, 280, 950);
+        scene.background = new THREE.Color(0xaebfd2);
+        scene.fog = new THREE.Fog(0xaebfd2, 280, 950);
         var camera = new THREE.PerspectiveCamera(55, vp.clientWidth / vp.clientHeight, 0.5, 3000);
         camera.position.set(0, 58, 44);
         scene.add(new THREE.AmbientLight(0xffffff, 0.9));
@@ -772,7 +933,7 @@
         scene.add(sun);
         var ground = new THREE.Mesh(
             new THREE.CircleGeometry(1600, 48),
-            new THREE.MeshLambertMaterial({ color: 0x9ed08a })
+            new THREE.MeshLambertMaterial({ color: 0x8a9a7b })
         );
         ground.rotation.x = -Math.PI / 2;
         ground.position.y = -0.05;
@@ -895,6 +1056,36 @@
         el('g3-btn-read').addEventListener('click', function () {
             toast('📖 (Demo) Tàng Kinh Các mở được ở mọi nơi — đọc/nghe truyện thỏa thích!');
         });
+        // ===== Lớp phủ kiểu Pokémon GO: avatar hồ sơ + các nút/panel nổi trên bản đồ =====
+        var chibiImg = el('ov-chibi');
+        if (chibiImg) chibiImg.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(chibiSVG(chibiCfg, 60));
+        function showSheet(id) {
+            ['ov-home-panel', 'ov-tkc-panel', 'ov-menu-sheet'].forEach(function (sid) {
+                var s = el(sid);
+                if (s) s.hidden = (sid !== id);
+            });
+        }
+        el('ov-home').addEventListener('click', function () {
+            var p = el('ov-home-panel');
+            showSheet(p.hidden ? 'ov-home-panel' : '');
+            updateHomeUI();
+        });
+        el('ov-tkc').addEventListener('click', function () {
+            var p = el('ov-tkc-panel');
+            showSheet(p.hidden ? 'ov-tkc-panel' : '');
+        });
+        el('ov-menu').addEventListener('click', function () {
+            var p = el('ov-menu-sheet');
+            showSheet(p.hidden ? 'ov-menu-sheet' : '');
+        });
+        var closers = document.querySelectorAll('.ov-close');
+        for (var ci = 0; ci < closers.length; ci++) {
+            closers[ci].addEventListener('click', function () {
+                var t = el(this.getAttribute('data-close'));
+                if (t) t.hidden = true;
+            });
+        }
+        el('btn-map-retry').addEventListener('click', retryMap);
         // Bản test hồi Thể Lực nhanh để dễ kiểm tra: +1 mỗi 30 giây (bản thật: +1 mỗi 5 phút)
         setInterval(function () {
             if (state.theLuc < state.theLucMax) {
